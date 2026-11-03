@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>토익 30일 단어장</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,500&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: answer-sheet motif — Day grid like an OMR column index, tests answered by filling bubbles */
+:root{
+  --bg:#f3f5f7; --paper:#ffffff; --ink:#1d2430; --muted:#5f6b7a; --line:#d9dfe6;
+  --accent:#c8314a; --accent-soft:#f8e3e7; --ok:#1f7a4d; --ok-soft:#e1f2e8; --bad:#b3261e; --bad-soft:#fbe4e2;
+  --star:#b57f00; --star-soft:#fbf1d6; --known:#4f9a12;
+  --pt-n:#2f63c4; --pt-v:#c8314a; --pt-a:#7a4fc0; --pt-ad:#0f8478; --pt-other:#8a6a1c;
+  --f-word:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161d; --paper:#1a2029; --ink:#e7ebf0; --muted:#97a3b3; --line:#2c3440;
+  --accent:#ef6b80; --accent-soft:#3a1f27; --ok:#5cc58d; --ok-soft:#173326; --bad:#f2857c; --bad-soft:#3b1d1b; --star:#f2c14e; --star-soft:#3a3018; --known:#a5e05c; --pt-n:#7fa8f5; --pt-v:#ef6b80; --pt-a:#b896f0; --pt-ad:#4fc7b8; --pt-other:#e0bd62; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161d; --paper:#1a2029; --ink:#e7ebf0; --muted:#97a3b3; --line:#2c3440;
+  --accent:#ef6b80; --accent-soft:#3a1f27; --ok:#5cc58d; --ok-soft:#173326; --bad:#f2857c; --bad-soft:#3b1d1b; --star:#f2c14e; --star-soft:#3a3018; --known:#a5e05c; --pt-n:#7fa8f5; --pt-v:#ef6b80; --pt-a:#b896f0; --pt-ad:#4fc7b8; --pt-other:#e0bd62; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);padding-block:8px 16px}
+html{overscroll-behavior-y:none}
+.list{will-change:transform}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.pin{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,0px));z-index:5;background:var(--bg);padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+.item{scroll-margin-top:calc(var(--hdr,0px) + var(--pin,0px) + 8px)}
+@media (max-width:560px){.hint-long{display:none}}
+h1{font-size:1.5rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 small{display:block;font-size:.8rem;font-weight:500;color:var(--muted);letter-spacing:.02em}
+nav.tabs{display:flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px}
+nav.tabs button{border:0;background:none;color:var(--muted);font:inherit;font-weight:500;padding:7px 14px;border-radius:7px;cursor:pointer}
+nav.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:8px;font-size:.92rem;font-weight:500;cursor:pointer}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* Overview */
+.summary{display:flex;flex-wrap:wrap;gap:24px;margin:0 0 22px;padding:14px 18px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.summary div{min-width:0}
+.summary b{display:block;font-family:var(--f-mono);font-size:1.25rem}
+.summary span{font-size:.8rem;color:var(--muted)}
+.group{margin-bottom:22px}
+.group h2{font-size:.78rem;letter-spacing:.08em;color:var(--muted);margin:0 0 8px;font-weight:700}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.day{all:unset;box-sizing:border-box;cursor:pointer;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center}
+.day:hover{border-color:var(--accent)}
+.day:focus-visible{outline:2px solid var(--accent)}
+.day .num{grid-row:span 2;font-family:var(--f-mono);font-size:1.2rem;color:var(--accent);width:2.2ch}
+.day .t{font-weight:500;font-size:.92rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.day .meta{font-size:.76rem;color:var(--muted);display:flex;gap:8px;align-items:center}
+.bar{height:4px;background:var(--line);border-radius:2px;flex:1;overflow:hidden;min-width:30px}
+.bar i{display:block;height:100%;background:var(--ok)}
+
+/* Study */
+.studyhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.studyhead h2{margin:0;font-size:1.2rem}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--paper)}
+.seg button{border:0;background:none;color:var(--muted);padding:7px 12px;font-size:.85rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.list{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.item{display:grid;grid-template-columns:2.4em minmax(0,1fr) minmax(0,1.3fr) auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .i{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.item .w{font-family:var(--f-word);font-size:1.12rem;font-weight:500;white-space:pre-line;min-width:0;overflow-wrap:anywhere}
+.item .m{min-width:0;overflow-wrap:anywhere}
+.item.known .w,.card.known .w{color:var(--known)}
+.hide{background:var(--line);color:transparent!important;border-radius:4px;cursor:pointer;user-select:none}
+.item.has-ex{cursor:pointer}
+.item.has-ex:hover{background:var(--bg)}
+.item.has-ex:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.caret{display:inline-block;margin-left:8px;font-family:var(--f-body);font-size:.72rem;font-weight:500;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px;vertical-align:middle;white-space:nowrap}
+.hide .caret{visibility:hidden}
+.ex{grid-column:2 / -1;font-size:.84rem;color:var(--muted);white-space:pre-line;background:var(--bg);border-radius:8px;padding:8px 10px}
+.icons{display:flex;gap:4px}
+.ico{border:1px solid var(--line);background:none;color:var(--muted);border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:.8rem;display:grid;place-items:center}
+.ico.star{font-size:.95rem}
+.ico.star.on{color:var(--star);border-color:var(--star);background:var(--star-soft)}
+.ico.note.has{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.ex.mine{border-left:3px solid var(--accent)}
+.editor{grid-column:2 / -1;display:grid;gap:8px;cursor:auto}
+.editor textarea{width:100%;font:inherit;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 32px));background:var(--paper);color:var(--ink);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.18);display:flex;gap:12px;align-items:flex-start;font-size:.9rem;z-index:20}
+.toast > div{flex:1;min-width:0}
+.ico.pass{cursor:default;border-style:dashed}
+.ico.pass.on{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+@media (max-width:560px){.item{grid-template-columns:2em minmax(0,1fr) auto}.item .m{grid-column:2 / 3}.item .icons{grid-row:1 / span 2;grid-column:3}}
+
+/* Flashcard */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px;cursor:pointer;gap:12px;user-select:none}
+.card .w{font-family:var(--f-word);font-size:clamp(2rem,7vw,3.2rem);line-height:1.1;white-space:pre-line;overflow-wrap:anywhere}
+.card .m{font-size:1.15rem;max-width:40ch}
+.card .hint{font-size:.8rem;color:var(--muted)}
+.cardnav{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+
+/* Test */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px}
+.panel h3{margin:0 0 10px;font-size:.95rem}
+.field{margin-bottom:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:4px 10px;font-family:var(--f-mono);font-size:.8rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.q{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px}
+.qtop{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;color:var(--muted);margin-bottom:10px}
+.progress{height:4px;background:var(--line);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.prompt{font-size:1.1rem;margin-bottom:18px;min-height:2.4em;white-space:pre-line;overflow-wrap:anywhere}
+.prompt.en{font-family:var(--f-word);font-size:2rem;line-height:1.15}
+.opts{display:grid;gap:8px}
+.opt{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;overflow-wrap:anywhere}
+.opt:hover{border-color:var(--muted)}
+.opt:focus-visible{outline:2px solid var(--accent)}
+.bub{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-family:var(--f-mono);font-size:.8rem}
+.opt .txt{min-width:0}
+.opt.en .txt{font-family:var(--f-word);font-size:1.1rem}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.right .bub{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .bub{background:var(--bad);border-color:var(--bad);color:#fff}
+.spell{display:flex;gap:8px;flex-wrap:wrap}
+/* part-of-speech markers: small circled abbreviations in front of each meaning */
+.mrows{display:grid;gap:3px}
+.mrows.inline{display:inline}
+.mrow{display:flex;gap:6px;align-items:baseline}
+.mrows.inline .mrow{display:inline;margin-right:.5em}
+.mrows.inline .pt{margin-right:4px}
+.pt{flex:none;display:inline-grid;place-items:center;min-width:1.7em;height:1.7em;padding:0 .35em;border:1.4px solid currentColor;border-radius:999px;font:700 .64rem/1 var(--f-mono);font-style:normal;letter-spacing:0;color:var(--pt-other);position:relative;top:-.08em}
+.card .m .mrows{justify-items:start;text-align:left}
+.pt-n{color:var(--pt-n)} .pt-v{color:var(--pt-v)} .pt-a{color:var(--pt-a)} .pt-ad{color:var(--pt-ad)}
+.hide .pt{visibility:hidden}
+.poslabel .pt{vertical-align:.1em;font-size:.62rem}
+.posform{display:grid;gap:10px}
+.posrow{display:grid;grid-template-columns:5.5em minmax(0,1fr) auto;gap:6px 10px;align-items:center}
+.poslabel{font-weight:700;font-size:.85rem;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:6px 8px;text-align:center}
+.posrow input{min-width:0;font:inherit;font-size:1.05rem;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.posrow.ok input{border-color:var(--ok);background:var(--ok-soft)}
+.posrow.no input{border-color:var(--bad);background:var(--bad-soft)}
+.posres{font-weight:700;width:1.2em;text-align:center}
+.posrow.ok .posres{color:var(--ok)}
+.posrow.no .posres{color:var(--bad)}
+.posans{grid-column:2 / -1;font-size:.82rem;color:var(--muted)}
+.spell input{flex:1;min-width:0;font-family:var(--f-word);font-size:1.3rem;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.feedback{margin-top:14px;padding:10px 12px;border-radius:8px;font-size:.92rem}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.no{background:var(--bad-soft);color:var(--bad)}
+.score{display:flex;flex-wrap:wrap;align-items:baseline;gap:14px;margin-bottom:14px}
+.score b{font-family:var(--f-mono);font-size:2.6rem;color:var(--accent)}
+table.res{width:100%;border-collapse:collapse;font-size:.9rem}
+table.res td{padding:8px 6px;border-top:1px solid var(--line);vertical-align:top;overflow-wrap:anywhere}
+table.res td.w{font-family:var(--f-word);font-size:1.02rem;width:34%}
+.tag{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.empty{padding:28px;text-align:center;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:12px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1><small>암기 마스터 · 토익 폴더</small>토익 30일 단어장</h1>
+    <nav class="tabs" aria-label="메뉴">
+      <button id="tab-home" data-tab="home">Day 목록</button>
+      <button id="tab-test" data-tab="test">시험</button>
+      <button id="tab-wrong" data-tab="wrong">오답노트</button>
+    </nav>
+  </header>
+  <main id="view"></main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+const RAW=[
+["DAY 01 사진묘사 필수 어휘(1)",[["Hold","들다, 잡다"],["Arrange","정리하다, 배열하다","Pillows are arranged on chairs.\n쿠션들이 의자 위에 배열되어 있다.\n\narranged on shelves  선반 위에\narranged on a rack  선반 위에\narranged in a cupboard  찬장에\narranged in a circle  원형으로"],["Pass","지나가다, 건네다"],["Reach","뻗다, 내밀다"],["Adjust","조정하다"],["Point","가리키다"],["Load","싣다, 넣다"],["Occupy","차지하다"],["Bend","구부리다"],["Lean","기대다"],["Prop","받치다, 떠받치다"],["Scatter","흩뿌리다"],["Pack (up)","싸다, 포장하다"],["Overlook","내려다보다"],["Carry","들다, 운반하다, 나르다","He's carrying a backpack.\n남자가 배낭을 들고 있다.\n\ncarry some packages  소포\ncarry a toolbox  공구 상자\ncarry cargo  화물"],["Fill","채우다"],["Inspact","자세히 살펴보다"],["Trim","다듬다, 손질하다"],["(re)pave","도로를 (재)포장하다"],["Assemble","조립하다, 모으다"],["Float","(물에) 뜨다, 뜨다"],["Mow","(잔디를) 깎다, 잔디를 깎다"],["Perform","공연하다, 연주하다"],["Transport","운반하다, 수송하다"],["Pour","(액체 등을) 붓다, 따르다, 붓다","The man is pouring a mixture into a pot.\n남자가 냄비에 반죽을 붓고 있다.\n\npour a beverage  음료\npour liquid  액체\npour cement  시멘트"],["Shade","그늘지게 하다, 블라인드"],["Surround","둘러싸다"],["Tow","견인하다"],["Greet","인사하다, 맞이하다"],["Rake","(낙엽 등을) 갈퀴로 긁어 모으다, 갈퀴, 갈퀴로 긁어모으다"],["Place","놓다","Items have been placed in a shopping cart.\n물품들이 쇼핑 카트에 놓여 있다.\n\nplaced in compartments  (수납)칸\nplaced in a freezer  냉동실\nplaced on a platter  접시"],["Face","직면하다, 면"],["Line","~을 따라 늘어서다, 선"],["Plug in","플러그를 꽂다, 전원을 연결하다, 플러그에 꽂다"],["Cross","건너다, 가로지르다"],["Hang","걸다, 걸리다"],["Distribute","나누어 주다, 배포하다"],["Fold","접다, 개다"],["Reflect","(거울, 물 등에) 비추다, 비추다"],["Address","연설하다"],["Plant","심다, 식물"],["File","(문서 등을 정리하여) 철하다, 파일, 철하다"],["Operate","작동하다"],["Stack","쌓다, 쌓아올린 더미"],["Clap","박수 치다, 박수를 치다"],["Kneel","무릎을 꿇다"],["Stroll","거닐다, 산책하다"]]],
+["DAY 02 사진묘사 필수 어휘(2)",[["Pail","쌓다, 무더기, 더미"],["Store","보관하다"],["Pick up","집어들다, 깎다, 따다"],["Serve","제공하다, (손님을) 응대하다, 서빙하다, 응대하다"],["Board","탑승하다, 칠판, 판자"],["Frame","틀에 넣다, 틀"],["Rest","놓다, 휴식을 취하다, 놓여 있다"],["Roll","돌돌 말다, 굴러가다, 굴리다"],["Empty","비우다, 비어 있는"],["Clear","치우다"],["Display","전시하다, 전시, 진열"],["Extend","뻗다, 펼치다","A bridge extends towards a domed building.\n다리가 돔형 건물까지 뻗어 있다.\n\nextend along the shore  해안을 따라\nextend over a shop entrance  상점 출입문 위로"],["Stir","젓다, (저어 가며) 섞다, 섞다"],["Sip","홀짝이다, 조금씩 마시다"],["Work on","~을 작업하다"],["Sweep","(빗자루로) 쓸다, 청소하다, 쓸다"],["Browse","둘러보다, 훑어보다"],["Lie","놓여 있다, 눕다"],["Wrap","포장하다, 두르다, 싸다"],["Step","서다, 걸음을 때다, 디디다"],["Wave","손짓하다, 파도, 손을 흔들다, (손에 들고) 흔들다, 흔들리다"],["Border","경계를 이루다, 경계, 접하다"],["Set up","설치하다, 놓다"],["Spread","펼치다, 퍼지다, 퍼뜨리다"],["Wipe","닦다"],["Dine","식사하다"],["Stock","채우다"],["Fasten","매다, 잠그다, 고정시키다"],["Exchange","교환하다, 교환"],["Lift","들어 올리다, 들어올리다"],["Polish","(윤이 나도록) 닦다, 닦다"],["Run","(길 등이) 나 있다, 달리다, 이어지다"],["Sort","분류하다, 종류"],["Sew","바느질하다"],["Put away","치우다"],["Enter","들어가다, 입력하다"],["Stare","쳐다보다, 응시하다"],["Pull","끌다, (차 등이) 나아가다, 나아가다, 당기다"],["Climb","오르다, 올라가다"],["Row","노를 젓다, 줄, 열"],["Exit","나가다, 출구, 내리다"],["Mount","장착하다, 설치하다"],["Dock","(배를) 부두에 대다, 부두, 부두에 대다"],["Put up","세우다, 내걸다, 설치하다, 게시하다"],["Cast","(그림자를) 드리우다, 드리우다"],["Post","게시하다, 기둥, 공고하다"],["Take off","꺼내다, 이륙하다, 떼어 내다, (옷 등을) 벗다"]]],
+["DAY 03 질의응답 필수 어휘(1)",[["Responsible","담당하는, 책임이 있는"],["Available","이용 가능한, 시간이 되는"],["Utility","공공시설, 공공요금"],["Repair","수리하다, 수리"],["Offer","제공하다, 할인"],["Status","상태, 지위"],["Record","기록, 녹화하다"],["Leave","출발하다, 휴가"],["Session","기간, 세션"],["Organize","준비[조직]하다, 정리하다, 준비하다, 조직하다"],["Revise","수정하다, 개정하다"],["Join","합류하다, 가입[등록]하다, 가입하다, 등록하다"],["Borrow","빌리다"],["Charge","충전하다, 책임"],["Interview","인터뷰, 인터뷰하다"],["Bottom","맨 아래"],["Prefer","선호하다, 더 좋아하다"],["Approve","승인하다, 찬성하다"],["Document","문서, 기록하다"],["Order","주문하다, 순서"],["Projection","예상, 영상"],["Contact","연락하다, 연줄"],["Bill","고지서, 청구하다"],["Colleague","동료"],["Review","비평, 검토하다"],["Cost","비용이 들다, 비용"],["Make it","가다, 참석하다"],["Proofread","교정보다"],["Committee","위원회"],["Retire","퇴직하다, 그만두다"],["Flyer","(광고용) 전단, 전단"],["Deadline","마감일, 최종 기한"],["Ship","보내다, 발송하다"],["Take over","인계받다, 이어받다"],["get to","~에 도착하다"],["Reture","반납[반품]하다, 수익, 반납하다, 반품하다"],["Draft","(완성품이 아닌) 원고, 초안, 원고"],["Depend on","~에 달려있다, ~에 의존하다"],["Delay","미루다, 지연"],["Supply","공급하다, 용품"],["Submit","제출하다"],["Negotiation","협상"],["Mind","꺼리다, 정신"],["Fine out","알아내다, 파악하다"],["Agreement","계약(서), 합의, 계약, 계약서"],["Formal","공식적인, 격식을 갖춘"],["Banquet","연회, 만찬"],["Presentation","발표, 프레젠테이션"],["Subscription","구독(료), 구독, 구독료"]]],
+["DAY 04 질의응답 필수 어휘(2)",[["schedule","일정을 잡다, 예정하다, 일정, 스케줄"],["process","처리하다, 과정"],["reception","환영회, 접수처"],["consult","상의하다, 자문하다, 참고하다"],["reimburse","환급하다, 상환하다"],["challenging","도전적인, 힘든"],["run out","다 쓰다, 떨어지다"],["transfer","이동하다, 전근시키다, 전근, 이동"],["invoice","청구서, 송장"],["celebrate","축하하다, 기념하다"],["abroad","해외에(서), 해외로, 해외에, 해외에서"],["label","라벨을 붙이다, 라벨, 라벨을 붙히다"],["supervisor","상사, 감독관"],["manual","메뉴얼, 설명서, 수동의"],["lead","이끌다, ~에 이르다 (to), 선두"],["monitor","화면, 모니터, 감시하다, 감독하다"],["inventory","재고 조사, 재고 정리, 재고(품), 재고"],["identification","신분증"],["survey","설문조사, 조사하다"],["suggest","제안하다, 권하다"],["go ahead","계속하다, 어서 ~하세요"],["belong to","~에 속하다, ~의 소유이다","~에 속하다: 어떤 대상이 집단·범주·지역 등의 일부이거나 그 안에 포함된다는 의미. 예: “이 종은 참새과에 속한다.”\n~의 소유이다: 특정 대상의 소유권·소유 관계를 나타낸다. 예: “이 가방은 그녀의 소유이다.”\n구별 팁: 집단·범주에 포함되면 “~에 속하다”, 소유·소지의 의미이면 “~의 소유이다(~의 것이다)”."],["make sure","확인하다, 반드시 ~하다","make sure (that) ... → “...인지 확인하다/확실히 하다”\n예: Make sure the window is closed. → 창문이 닫혔는지 확인하세요.\nmake sure to + 동사 → “반드시/꼭 ~하다”\n예: Make sure to turn off the lights. → 반드시 전등을 끄세요.\n기억법: make(만들다) + sure(확실한) = 확실하게 하다."],["donate","기부하다"],["lower","낮추다, 내리다, 아래쪽의"],["branch","지점"],["manage","경영[관리]하다, 가까스로 하다, 경영하다, 관리하다"],["ask for","~을 요청하다"],["deliver","배달하다, 전달하다"],["recommend","추천하다, 권하다"],["purchase","구입, 구매(품), 구입하다"],["head","우두머리, 책임자, 책임지다, 향하다"],["know if","~인지 알다"],["lend","빌려주다"],["personnel","직원들, 인사과"],["accept","받다, 수락하다"],["improve","개선되다, 향상시키다"],["downtown","시내에, 도심에, 시내, 도심"],["require","필요로 하다, 요구하다"],["renew","갱신하다"],["directory","(이름, 주소 등을 나열한) 안내 책자, 명부, 안내 책자"],["no later than","늦어도 ~까지","‘더 늦지 않게’ → 허용되는 가장 늦은 시점을 나타내는 “늦어도 ~까지”.\n그 시점 자체도 포함된다.\n예: No later than Friday → 보고서는 늦어도 금요일까지 제출하세요.\n기억법: no later = 더 늦지 않음 → 늦어도"],["either","어느 하나[것], (부정문에서) 또한, 역시, 또한, 역시","대명사·한정사: 둘(이상) 가운데 어느 하나 → “어느 하나(것)”\n예: either A or B = A 아니면 B 중 어느 하나\n부사(부정문): 앞의 부정에 동의 → “(나도) 역시, 또한”\n예: I don't like it either. = 나도 그것을 좋아하지 않아.\n구별 팁: 부정문이면 either, 긍정문이면 too/also."],["certified","공인의, 인증[인가]된"],["local","지역의, 현지의"],["deserve","받을 만하다"],["council","의회"],["wonder","궁금해하다"],["be supposed to","~하기로 되어 있다"]]],
+["DAY 05 대화문 필수 어휘(1)",[["candidate","지원자, 후보자"],["option","선택 (사항)"],["replace","교체하다"],["not until ~","~가 되어야 가능하다"],["issue","발급하다, 발행하다, (잡지 등의) 호, 문제, 쟁점"],["promotion","승진, 판촉 행사, 홍보"],["shift","교대 근무, 변화, 옮기다, 이동하다"],["opening","(일자리) 공석, 개장, 게시"],["impressed","깊은 인상을 받은, 감동받은"],["brainstorm","아이디어를 생각해 내다, 브레인스토밍하다"],["feedback","의견, 반응, 피드백"],["confirm","확인하다, 확정하다"],["domestic","국내의, 국산의, 가정의"],["warranty","보증(서)"],["cover","충당하다, 다루다, 보장[보상]하다, 대신하다"],["upcoming","다가오는, 곧 있을"],["select","고르다, 선정하다, 선택된"],["install","설치하다"],["community","지역 사회, 공동체"],["timeline","스케줄, 일정"],["public","출판하다, 발행[발표]하다"],["locate","찾다, 위치시키다"],["contractor","계약자, 하청[도급] 업자"],["reject","거부하다, 거절하다"],["check out","(책을) 대출하다, 퇴실하다, 확인하다, 계산하다"],["extra","추가의, 추가 되는 것, 추가로"],["payroll","급여 총액, 급여 지불 명부"],["apologize","사과하다"],["assembly","조립"],["plumber","배관공"],["reservation","예약"],["footage","자료 화면, 특정 장면","뉴스·다큐 등의 원본 비디오 자료 → “자료 화면”\n영상 중 특정 구간이나 샷 → “특정 장면”\n예: CCTV footage → CCTV의 특정 장면(자료 화면)"],["experience","경력, 경험, 경험하다"],["facility","시설, 기관"],["loan","대출(금), 빌려주다"],["spot","장소, 자리, 얼룩, 찾다, 발견하다"],["recipe","조리[요리]법"],["stop by","들르다","= drop by, come by"],["prescription","처방(전), 처방약"],["put together","준비하다, 만들다, 조립하다"],["spacious","넓은"],["potential","잠재의, 가능성"],["improvement","개선, 향상"],["lease","임대차 (계약), 임대하다"],["raise","올리다, 모으다, 제기하다, 인상"],["overseas","해외의, 해외에"],["account","계정, 계좌, 설명, 설명하다"]]],
+["DAY 06 대화문 필수 어휘(2)",[["expand","확장되다, 확대하다"],["annual","연례의"],["promote","홍보하다, 승진시키다"],["postpone","미루다, 연기하다"],["deal","상대하다, 다루다 (with), 거래, 대우"],["hands-on","직접 해 보는[실천하다]"],["in advance","미리, 사전에"],["budget","예산, 예산을 세우다, 저가의, 저렴한"],["cut back","줄이다, 삭감하다"],["qualified","자격이 있는"],["neighborhood","근처, 구역, 이웃"],["away","자리에 없는, 부재중인, 떨어져"],["correct","고치다, 맞는, 정확한"],["specialize","전문으로 하다, 전공하다 (in)"],["inconvenience","불편, 불편하게 하다"],["reasonable","합리적인, (가격이) 적당한, 비싸지 않은"],["turn out","~으로 판명되다, 밝혀지다"],["advantage","이점, 혜택"],["own","소유하다, (소유격 뒤에서 강조) 자신의"],["workload","업무량, 작업량"],["overtime","초과 근무, 규정 시간 외에, 초과 근무의"],["misplace","(물건 등을) 둔 곳을 잊어버리다"],["application","지원[신청](서), 앱"],["connect","연결하다, 연락하다"],["policy","정책, 방침"],["spreadsheet","스프레드시트, 데이터 문서"],["handout","유인물, 배포 자료"],["accommodate","수용하다, 숙박시키다"],["rent","임대하다, 임대(료)"],["crowded","혼잡한, 붐비는"],["see if","~인지 알아보다"],["release","출시하다, 공개하다, 출시, 발매"],["expense","비용, 경비"],["set aside","따로 챙겨 두다"],["background","배경, 경력"],["bring up","화제를 꺼내다, (화면에) 띄우다"],["evaluation","평가"],["floor plan","(건물의) 평면도"],["regional","지역의"],["block","막다, 차단하다, 블록, 구역"],["suspend","중단하다, 유보하다"],["defect","결함"],["injure","부상을 입히다, 손상시키다"],["public","대중, 공공의"],["landscaping","조경"],["fill out[in]","작성하다, 기입하다"],["demaged","손상된, 피해를 입은"],["in time","(늦지 않게) 시간 맞춰"]]],
+["DAY 07 대화문 필수 어휘(3)",[["permit","허가(증), 허용[허락]하다"],["attend","참가하다, 참석하다"],["estimate","견적(서), 추정치, 추정하다"],["flexible","융통성 있는, 유연한, 조율이 가능한"],["sold out","매진된, 품절된"],["fee","요금, 수수료"],["refundable","환불 가능한"],["official","공식적인, 공무원, 임원"],["electronically","컴퓨터로, 인터넷을 이용하여"],["a couple of","둘의, 몇몇의"],["payment","납입(금), 지불(금), 결제"],["influence","영향을 주다, 영향"],["charity","자선, 자비"],["property","부동산, 소유물, 재산"],["leak","누수, 새어 나옴, 새다, 누출하다"],["management","경영진, 경영, 관리"],["apply","지원하다, 신청하다"],["last-minute","막바지의, 막판의"],["collection","소장품, 수집품"],["maintenance","정비, 유지 (관리), 보수"],["originally","원래, 처음에"],["progress","진행, 진전, 진척, 나아가다, 진척하다"],["keep up with","뒤처지지 않고 따라가다"],["cancel","취소하다"],["discontinue","(생산, 정기 행사 등을) 중단하다"],["luncheon","오찬"],["be about to","막 ~하려고 하다"],["edition","(간행물의) 판, 호"],["missing","없어진, 분실된, 빠진"],["deposit","예금하다, 예치하다, 계약금, 보증금"],["draw up","(문서 등을) 작성하다"],["layout","배치(도), 배정"],["terrific","훌륭한, 멋진"],["brief","간단한, 짧은 / ~에게 알려주다[보고하다]"],["detail","세부사항, 상세히 알리다"],["internal","내부의"],["mix-up","혼동, 착오, 잘못 알다, 혼동하다"],["shred","파쇄하다"],["catering","출장 요리, 음식 공급(업)"],["malfunctioning","오작동하는"],["overcharge","과다 청구하다"],["routine","일상적인, 정기적인, 판에 박힌 일, 일과"],["athletic","운동 경기의, 체육의"],["attract","(마음을) 끌다, 끌어모으다"],["out of town","타지역에 있는, 출장 중인"],["register","등록하다, 금전 등록기"],["rush","혼잡, 분주함, 서두름, 서두르다"],["manufacturer","제조업체, 제조회사"],["negotiate","협상하다, 타결하다"],["tenant","세입자"]]],
+["DAY 08 담화문 필수 어휘(1)",[["Award","상, 수여하다, 주다"],["Feature","특징으로 삼다 / 기능, 특징, 특집기사"],["Souvenir","기념품"],["Broadcast","방송 / 방송하다"],["Representative","직원, 대표자 / 대표하는","= rep"],["Demonstration","시연 / 설명"],["Culinary","요리의"],["Hesitate","주저하다, 망설이다","hesitation  n. 망설임\nhesitant  a. 주저하는, 망설이는"],["Reward","보상 / ~에 보답하다, 상을 주다"],["Alternative","대안, 대체 / 대안의"],["Attendee","참석자"],["Proceed to\nProceed with","~로 향하다 / 진행하다","Proceed to : ~로 향하다\nProceed with : 진행하다"],["Patron","후원자, 고객"],["Loyal","충성스러운"],["Applause","박수"],["Reputation","평판, 명성"],["Outgoing","퇴임하는, 나가는, 외향적인, 사교적인"],["Comprehensive","종합적인, 포괄적인"],["Direct","보내다, 안내하다, 감독하다 / 직접적인"],["Host","주최하다, 진행하다 / 진행자"],["Talented","재능 있는, 유능한"],["Remarkable","주목할 만한, 훌륭한"],["Anniversary","기념일"],["Report","보도[보고]하다, 보도, 보고서 / 출두하다, (도착을) 알리다"],["contain","포함하다"],["Nominate","추천하다, 임명하다"],["Tune","채널을 맞추다, 소매하다"],["Smoothly","순조롭게"],["Accurate","정확한"],["Last","지속[계속]되다 / 지난, 마지막의"],["Note","주목하다, 주의하다, 언급하다 / 유의사항"],["Refreshments","다과, 가벼운 음식물"],["Remind","상기시키다, 생각나게 하다"],["Organization","기관, 단체, 조직"],["Construction","공사"],["Share","나누다, 공유하다 / (할당) 몫, 주식"],["Practical","실제의 / 실용[실질]적인"],["Outdated","시대에 뒤떨어진, 구식의"],["Highlight","강조하다 / 압권, 하이라이트"],["Prestigious","명성 있는, 유명한"],["Mark","기념하다, 축하하다 / 기록하다, 표시하다"],["Enthusiastic","열성적인"],["Recognize","인정하다, 표창하다, 알아보다"],["Volunteer","자원하다, 자원봉사하다 / 자원봉사자"],["Task","업무, 과제 / 과업을 맡기다"],["Attention","주의, 집중"],["Concern","걱정, 관심사 / 걱정시키다, 관련이 있다"],["Furnishings","가구, 세간, 비품"],["Feel free to","마음껏 ~하다, 언제든지 ~하다"]]],
+["DAY 09 담화문 필수 어휘(2)",[["Prohibit","금지하다"],["thrilled","흥분되는, 신나는"],["complimentary","무료의"],["look forward to","~을 고대하다"],["fit","맞추다, 적합하다"],["article","기사, 글, 물품, 물건"],["be sure to","반드시 ~하다"],["renowned","유명한, 명성 있는"],["packet","소포, 꾸러미, 자료집"],["commute","통근하다 / 통근(거리), 통근, 통근거리"],["market","시장에 내놓다, 시장"],["career","직업, 경력"],["package","소포, 포장, 종합 혜택 / 포장하다"],["confident","확신하는"],["favorable","우호적인, 유리한"],["reminder","알림, 생각나게 하는 것"],["unique","독특한, 유일한"],["match","필적하다, 어울리다 / 경기, 시합"],["mayor","시장"],["inspire","영감을 주다, 고무하다"],["nutritious","영양가 있는"],["point out","언급하다, 지적하다"],["comfortable","편안한"],["keynote","기조, 요지"],["disturb","방해하다"],["hazardous","(특히 건강, 안전에) 위험한"],["set apart","구별하다, 눈에 띄게 하다"],["prepare","준비하다"],["device","장치, 기기"],["minor","사소한, 비교적 중요하지 않은"],["take time","시간[짬]을 내다, 시간이 걸리다"],["latest","최신의, 최근의"],["decorate","장식하다"],["innovative","혁신적인"],["vote","투표하다, 투표"],["detour","우회로 / 우회하다"],["fund","자금을 지원[제공]하다 / 자금"],["private","개인의, 민간의"],["forecast","예측[예보]하다 / 예보"],["restore","복구하다, 복원하다"],["expert","전문가 / 전문가의, 전문적인"],["occasion","행사, 때, 경우"],["follow up with","후속 조치하다, 덧붙이다"],["(just) in case","~할 경우를 대비해서, 만일에 대비해서"],["honor","명예, 영광 / 존경하다, 영광을 주다"],["underway","진행 중인"],["explain","설명하다"],["slippery","미끄러운"],["fair","박람회, 축제 / 공정한, 타당한"],["get back to","~에게 다시 연락하다, ~로 돌아오다"]]],
+["DAY 10 담화문 필수 어휘(3)",[["limited","제한된, 한정된"],["quota","몫, 할당량"],["recall","회수[리콜]하다, 기억하다 / 회수, 리콜"],["priority","우선(권), 우선 사항"],["familiar","익숙한, 친숙한"],["individual","개인 / 개별적인, 개인의"],["seating","좌석 (배치)"],["support","지원, 후원, 원조 / 후원하다"],["total","총계의 / 총액 / 합계가 ~이 되다"],["grateful","감사하는, 고마워하는"],["overwhelming","압도적인 / 부담스러운"],["administrative","행정의, 관리의"],["continue","계속하다, 지속하다"],["take place","열리다, 발생하다"],["in a moment","잠시 후에"],["figure\nfigure out","수치 / 알아내다"],["spend","(시간, 돈 등을) 쓰다, 소비하다"],["belongings","소지품, 소유물"],["research","연구하다, 조사하다 / 연구, 조사"],["explore","살피다, 답사하다, 탐구하다"],["track","추적하다 / (기차) 선로, (음반) 트랙"],["pleasure","기쁨, 즐거움"],["distinguish","구별하다 / 두드러지게 하다"],["merger","합병"],["flourish","번창하다, 번성하다"],["competition","대회, 경쟁"],["aircraft","항공기"],["incredible","믿을 수 없는, 놀라운"],["district","지구, 구역"],["negative","부정적인"],["upgrade","개선하다 / 업그레이드, 향상, 개선"],["agency","대행사, 대리점, 기관"],["sample","샘플, 견본 / 시식하다, 시험하다"],["treat","대접, 한턱, 간식 / 다루다, 대하다, 치료하다"],["renovation","보수, 개조"],["fleet","(한 회사 소유의) 차량 전체, 무리"],["historic","역사적인, 역사상 중요한"],["warehouse","창고, 저장소"],["resident","주민, 거주자"],["successful","성공적인, 고스란히 그대로 있는"],["extraordinary","비범한, 엄청난"],["generous","관대한, 많은, 풍부한"],["audience","청중, 관객"],["paperwork","서류 (작업), 문서 업무"],["that way","그렇게 하면, 그런 방식으로"],["proof","증거, 증명서 / (합성어로) ~방지의"],["various","다양한"],["prompt","재촉하다, 촉구하다, 지령하다 / 즉각적인"],["keep in mind","명심하다"],["intact","원래대로의, 고스란히 그대로 있는"]]],
+["DAY 11 동사 기출 어휘(1)",[["conduct","실시하다, 수행하다 / 행위, 경영"],["assure","보증하다, 보장하다, 단언하다"],["indicate","나타내다, 표시하다, 밝히다"],["fulfill","(요구 등을) 충족하다 / (계획, 약속 등을) 이행하다"],["implement","시행하다, 이행하다 / 도구"],["prevent","방지하다, 막다"],["launch","출시하다, 시작하다 / 출시"],["assign","배정하다, 할당하다"],["relocate","이전하다, 이동하다"],["affect","영향을 미치다"],["soar","급증하다, 치솟다"],["attach","첨부하다, 붙이다"],["recruit","모집하다, 채용하다 / 신입사원"],["consider","고려하다"],["enhance","향상시키다, 높이다, 강화하다"],["accompany","동행하다, 동반하다, 동시에 일어나다"],["guarantee","보장, 보증(서) / 보장하다, 보증하다"],["reorganize","재편성하다, 재조직하다"],["retain","보유하다, 유지하다"],["afford","(경제적, 시간적으로) 여유가 있다, 할 수 있다"],["decline","거절하다, 거부하다 / 감소하다, 하락하다 / 감소, 하락"],["collaborate","협력하다, 공동 작업하다"],["enlarge","확대하다, 확장하다"],["clarify","분명히 하다"],["modify","수정하다, 변경하다"],["acknowledge","(사실, 존재 따위를) 인정하다, (받았음을) 알리다, 감사를 표시하다"],["undergo","(변화, 고난 따위를) 겪다, 겪다, 경험하다"],["boost","증진시키다, 북돋우다, (경기를) 부양하다 / 증진, 인상"],["vary","각기 다르다 / 다양하다"],["engage","관여하다, 참여하다, 끌어들이다"],["preserve","보존하다, 보호하다"],["react","반응하다, 대응하다"],["convert","전환하다, 바꾸다"],["obtain","얻다, 획득하다"],["obstruct","방해하다, 막다"],["expect","예상하다, 기대하다"],["dwindle","줄다, 축소되다"],["solicit","(충고, 의견, 지지 등을) 요청하다, 간청하다"],["allocate","할당하다, 배당하다"],["foster","육성하다, 촉진하다"],["alleviate","(고통, 슬픔 따위를) 완화시키다"],["undertake","착수하다, (일,책임을) 떠맡다"],["omit","생략하다, 누락하다"],["incur","(손해 등을) 초래하다, 입다"],["maneuver","움직이다, 조종하다"],["expedite","신속히 처리하다, 진척시키다"],["entail","필요로 하다, 수반하다"],["officiate","(직무를) 이행하다, (의식 등을) 집전하다, 사회 보다"],["remit","송금하다, 송부하다"],["fluctuate","오르내리다, 변동하다"],["retrieve","되찾다, 회수하다, (데이터 등을) 불러오다"],["achieve","성취하다, 달성하다"],["promote","촉진[고취]하다, 증진하다"]]],
+["DAY 12 동사 기출 어휘(2)",[["benefit","이익[혜택]을 얻다, 이익을 주다 / 이익, 혜택"],["grant","주다, 수여하다 / 보조금, 장학금"],["encourage","권장하다, 장려하다"],["express","표현하다, 나타내다 / 신속한"],["respond","응답하다, 대답하다, 반응하다"],["limit","제한하다, 한정하다 / 제한, 경계"],["involve","수반하다 / 관련시키다"],["participate","참가하다, 참석하다"],["seek","구하다, 찾다"],["reveal","드러내다, 밝히다, 누설하다"],["evaluate","평가하다"],["double","두 배로 하다, 두 배가 되다 / 두 배의"],["acquire","얻다, 획득[습득]하다, (기업, 사업체 등을) 인수하다"],["propose","제안하다, 제의하다"],["merge","(기업체, 조직 등이) 합병하다, 합치다"],["intend","의도하다"],["inform","알리다, 정보를 제공하다"],["exceed","(범위, 한도를) 초과하다, 넘다, ~을 능가하다"],["authorize","승인하다, 권한을 주다"],["comply","준수하다, 따르다"],["interrupt","방해하다, 중단시키다"],["divide","나누다, 분배하다"],["generate","(전기, 열 따위를) 발생시키다 / (수익을) 창출하다"],["withdraw","철회하다, 취소하다 / (돈을) 인출하다"],["entitle","자격을 주다"],["relieve","(고통, 부담 따위를) 덜다, 해소하다"],["compromise","타협하다, (평판 등을) 손상시키다 / 타협, 손상시키기"],["decide","결정하다, 결심하다"],["resume","재개하다, 다시 시작하다"],["outline","개요를 서술하다, 약술하다 / 개요"],["focus","초점을 맞추다, 집중하다"],["reduce","줄이다, 할인하다"],["terminate","끝내다, 끝나다"],["present","제시하다, 주다 / 출석한, 현재의"],["convey","(생각, 감정 등을) 전달하다 / (한 장소에서 다른 장소로) 옮기다"],["duplicate","복사하다, 복제하다 / 사본 / 복사의, 이중의"],["interact","상호 작용하다 / 소통하다"],["lure","꾀다 / 유인하다"],["diversify","다양화하다, 다각화하다"],["compile","(자료를) 편집하다, 엮다"],["endorse","승인하다, 보증하다 / (광고에서 상품을) 홍보하다"],["verify","확인하다 / 입증하다"],["impose","(세금, 벌금 등을) 부과하다"],["pursue","추구하다 / 쫒다"],["disclose","밝히다, 공개하다, 드러내다"],["transmit","전송하다, 보내다"],["commemorate","기념하다, 축하하다"],["acquaint","숙지시키다, 알리다"],["deliberate","심사숙고하다, 심의하다 / 신중한, 고의적인"],["convene","모이다, (회의를) 소집하다"]]],
+["DAY 13 동사 기출 어휘(3)",[["reserve","예약하다 / 보유하다, 보존하다"],["partner","파트너가 되다, 협력하다"],["determine","판단하다, 결정하다, 알아내다"],["examine","검토하다, 조사하다"],["handle","다루다, 처리하다"],["coordinate","조정하다, 관장하다"],["maintain","유지하다, (건물 등을 좋은 상태로) 관리하다"],["ensure","보장하다, 확실하게 하다"],["avoid","피하다, 막다"],["consist","이루어지다, 구성되다"],["follow","따르다 / (시간 순서상) ~ 다음에 오다"],["enforce","(법 등을) 시행하다, 시행하다, 요구하다, 강요하다"],["establish","세우다, 설립하다, 확립하다"],["refrain","삼가다, 자제하다"],["cause","일으키다, 유발하다 / 원인, 이유"],["enroll","등록하다, 입학하다"],["investigate","조사하다, 분석하다"],["resign","사임하다, 사퇴하다"],["occur","발생하다, 일어나다"],["succeed","뒤를 잇다, 계승하다 / 성공하다"],["assume","(권력, 책임을) 떠맡다, 가정하다"],["emerge","부상하다, 떠오르다"],["observe","준수하다, 지키다 / 관찰하다"],["expose","노출시키다, 드러내다"],["restrict","제한하다, 한정하다"],["finalize","마무리하다, 완결하다"],["argue","주장하다, 논의하다"],["forward","보내다, 전달하다 / 앞으로"],["insert","끼워 넣다"],["speculate","추측하다, 짐작하다"],["qualify","자격을 얻다, 적합하다"],["surpass","넘어서다, 초과하다, 돌파하다"],["interface","방해하다, 간섭하다"],["refer","참고[참조]하다, 언급하다"],["strive","노력하다, 애쓰다"],["disregard","무시하다, 경시하다 / 무시"],["object","반대하다 / 물건, 대상, 목적"],["summarize","요약하다"],["waive","(권리 등을) 포기하다 / 적용하지 않다"],["overhaul","(철저히) 점검하다 / 점검, 장비"],["facilitate","가능하게 하다 / 촉진하다"],["yield","(수익, 결과 등을) 내다, 산출하다 / 산출(액), 수확(량)"],["revert","(본래의 습관이나 상태로) 되돌아가다"],["relinquish","포기하다, 넘기다"],["rely","의존하다"],["affix","붙이다, 부착하다"],["integrate","통합시키다"],["solidify","굳히다, 확고히 하다"],["encompass","포함하다 / 애워싸다"],["institute","(제도 등을) 마련하다, 설치하다 / 기관, 협회"],["discard","버리다, 폐기하다"],["introduce","도입하다, 시작하다"]]],
+["DAY 14 동사 기출 어휘(4)",[["reschedule","(일정을) 다시 잡다, 조정하다"],["separate","분리하다, 가르다 / 분리된, 별개의"],["exhibit","전시하다, 나타내다 / 전시(회), 전시품"],["compare","비교하다, 비유하다"],["remain","남아 있다, 유지하다"],["allow","허용하다, 허락하다"],["announce","발표하다, 공표하다"],["oversee","(직원, 일 따위를) 감독하다, 두루 살피다"],["meet","맞추다, 충족하다"],["instruct","지시하다, 교육하다"],["broaden","넓히다, 확대하다"],["book","예약하다 / 책, 도서"],["admit","(입장, 입학 등을) 허락하다 / (사실이라고) 인정하다, (~했음을) 시인하다"],["notify","알리다, 통보하다"],["represent","대표하다, 대신하다"],["advise","조언하다, 충고하다"],["expire","(기한이) 만료되다, 만기가 되다"],["depart","떠나다, 출발하다"],["appoint","임명하다, (약속 시간 등을) 정하다"],["result","(결과로) 되다 / 결과"],["equip","(장비를) 갖추다, 설비하다"],["remove","제거하다, 없애다"],["target","목표로 삼다, 겨냥하다 / 목표, 표적"],["appeal","흥미를 끌다, 매료하다"],["subscride","(신문, 잡지 등을) 구독하다, 구독하다"],["adhere","준수하다, 고수하다, 들러붙다"],["conserve","절약하다, 보존하다"],["eliminate","없애다, 제거하다"],["cooperate","협력하다"],["encounter","(문제 등에) 직면하다, 부딪히다, (우연히) 만나다"],["provide","제공하다, 공급하다"],["contribute","기여하다, 공헌하다, 제공하다"],["resolve","(문제 등을) 해결하다"],["utilize","활용하다, 이용하다"],["prolong","(시간, 공간을) 늘이다, 연장하다"],["anticipate","기대하다, 예상하다"],["combine","결합시키다"],["settle","해결하다, 처리하다, 정착하다"],["attribute","탓[공]으로 돌리다"],["emphasize","(사실, 중요한 따위를) 강조하다, 역설하다"],["patronize","애용하다, 후원하다"],["redeem","(현금이나 상품으로) 바꾸다"],["abolish","(법률, 제도 등을) 폐지하다"],["dispose","처리하다, 버리다"],["amend","(법률, 계약 따위를) 고치다, 수정하다, (건물 등을) 개량하다"],["commence","시작되다, 시작하다"],["conceive","(계획 등을) 생각해 내다, 구상하다, 구상하다, 생각해 내다"],["activate","(기계, 시스템 등을) 가동하다, (계정 등을) 활성화하다"],["thrive","번영하다"],["assess","평가하다"],["complement","보완하다, 보충하다 / 보완물"],["capture","붙잡다, 포착하다"],["reflect","반영하다, 나타내다"],["offset","상쇄하다, 보충하다"]]],
+["DAY 15 명사 기출 어휘(1)",[["applicant","지원자, 신청자"],["opportunity","기회"],["shipment","배송(품), 선적(물)"],["procedure","절차"],["condition","상태, 조건"],["performance","성과, 실적, 성능 / 공연, 연주"],["asset","자산"],["rating","평가, 등급, 순위"],["equipment","장비, 설비, 기기"],["restraint","억제, 규제, 제한"],["dispute","논쟁, 분쟁, 갈등 / 논쟁하다"],["income","소득, 수입"],["compensation","보상(금), 배상"],["evidence","증거"],["duty","업무, 의무, 관세, 세금"],["renewal","갱신, 기한 연장 / 재개발"],["gain","수익, 증가 / 얻다, 획득하다"],["participation","참가, 참여"],["supervision","감독, 관리, 지휘"],["refund","환불(금) / 환불하다"],["view","견해 / 전망, 시야"],["consent","동의, 허락 / 동의하다"],["location","위치, 장소, 입지"],["expertise","전문성, 전문 지식[기술]"],["majority","대다수, 대부분"],["flaw","결함, 결점 / 손상하다, 망가뜨리다"],["recommendation","추천(서)"],["inquiry","문의, 질문"],["satisfaction","만족, 충족"],["pollution","오염, 공해"],["inspection","점검, 검사"],["aim","목표, 목적 / 겨냥하다"],["constraint","제한, 제약, 억제"],["material","자료 / 재료"],["conservation","(자연환경, 문화유산 등의) 보호, 보전"],["headquarters","본부, 본사"],["vendor","판매자, 행상(인)"],["analysis","분석, 검토"],["alteration","변경, 개조"],["attire","복장, 의상"],["transaction","거래, (업무 등의) 처리"],["substitute","대체(품), 대리자 / 대신하다"],["insight","통찰력, 식견"],["proficiency","숙달, 능숙"],["delegate","대표(자), 사절, 대리 / 위임하다, 대표로 파견하다"],["succession","연속, 잇따름, 계속"],["fluctuation","변동, 오르내림"],["transit","수송, 통행"],["amandment","(계약서, 법률 등의) 수정, 개선"],["subsidiary","자회사, 보조물 / 부차적인, 보충하는"],["exposition","박람회, 전시회, 설명"],["match","아주 잘 어울리는 사람[것]"],["landmark","랜드마크, 주요 지형 건물"],["revision","수정, 개정"],["aspect","면, 관점"],["recognition","인정, 표창, 인식"]]],
+["DAY 16 명사 기출 어휘(2)",[["request","요청 / 요구하다"],["agenda","의제, 안건"],["production","생산(량), 제작, 생산, 생산량"],["revenue","수입, 수익"],["convenience","편리, 편의"],["entrance","입구, 입장"],["notice","공고 / 주목하다"],["processing","가공, 처리"],["destination","목적지, 도착지"],["access","이용 권한 / 이용하다"],["quarter","분기, 4분의 1"],["safety","안전"],["solution","해결(책), 해법, 해결, 해결책"],["resource","자원, 재원"],["observance","(법규 등의) 준수, 준수 / (축제 등의) 기념, 기념"],["coworker","동료, 협력자"],["ability","능력, 역량"],["extension","연장, 내선 (번호), 내선 번호"],["congestion","혼잡, 체증"],["productivity","생산성"],["achievement","업적, 성취"],["description","기술(서), 해설, 기술, 기술서"],["suggestion","제안, 의견"],["responsibility","책임, 임무"],["consumption","소비(량), 소비, 소비량"],["preference","선호, 특히 좋아하는 것"],["decision","결정, 결심"],["registration","등록, 접수"],["ceremony","의식, 식"],["growth","성장, 증가"],["outcome","결과, (구체적) 성과, 성과"],["permission","허가, 승인"],["phase","단계, 국면"],["relocation","이전, 재배치"],["setting","환경 / 장소"],["investment","투자(액), 투자, 투자액"],["receipt","영수증 / 특권을 주다"]]],
+["DAY 17 명사 기출 어휘(3)",[["attendance","참석(률), 출석, 참석, 참석률"],["complaint","불만, 항의"],["manner","방식, 태도"],["itinerary","여행 일정(표), 여행 일정, 여행 일정표"],["proposal","제안(서), 제의, 제안, 제안서"],["profit","수익, 이익"],["submission","제출(물), 제출, 제출물"],["negligence","부주의, 과실"],["excess","초과(량), 초과, 초과량 / 초과한"],["appointment","약속, 지명"],["response","응답, 반응"],["deficit","적자, 결손"],["contribution","공헌, (잡지 등) 기고, 기고"],["atmosphere","분위기, 환경"],["impact","영향 / 영향을 주다"],["transportation","교통 (수단), 운송, 교통, 교통 수단"],["fare","(교통) 요금, 요금, 교통 요금"],["signature","서명"],["authority","권한, 당군"],["sequence","순서, 차례"],["expiration","만료, 만기"],["caution","조심 / 주의를 주다"],["effort","노력"],["direction","방향, 감독"],["replacement","교체, 후임자"],["amenity","편의 시설"],["acceptance","동의, 가입 허가"],["cuisine","요리(법), 요리, 요리법"],["recovery","회복"],["expenditure","비용, 지출"],["conflict","충돌 / 대립하다"],["ingredient","재료, 성분"],["security","안전, 보안"],["regulation","규정, 규제"],["preservation","보존, 보호"],["departure","출발, 경과; 소멸 소멸하다, 경과, 소멸 / 소멸하다"],["proximity","인접, 근접"],["morale","의욕, 사기, 사기, 의욕"],["specification","설명서, 부채"],["dealership","판매 대리점"],["alliance","동맹, 제휴"],["courier","택배 배달원"],["contingency","비상 상황, 우발 사건"],["prosperity","번영, 번창"],["recipient","수령인, 수취인"],["prospect","전망, 기대감"],["array","배열, 열거"],["recession","불황, 불경기"],["subordinate","부하 직원 / 하급의"],["spectator","관중, 구경꾼"],["disruption","중단, 혼란"],["acquisition","인수, 획득"],["prototype","원형, 시제품"],["prescription","처방(전), 처방, 처방전"],["expectation","기대, 전망"],["assortment","갖가지, 모음"],["cooperation","협력, 협동"]]],
+["DAY 18 명사 기출 어휘(4)",[["requirement","필요조건, 요건"],["shortage","부족"],["preparation","준비, 대비"],["approval","승인, 인가"],["malfunction","고장 / 제대로 작동하지 않다"],["distribution","배포, 유통"],["arrangement","준비, 채비"],["instruction","설명(서), 교육, 설명, 설명서"],["addition","추가(물), 추가, 추가물"],["competitor","경쟁사, 경쟁자"],["demand","수요 / 요구하다"],["practice","실행 / 연습하다"],["exposure","노출 / 폭로"],["stability","안정(성), 안정, 안정성"],["efficiency","효율(성), 능률, 효율, 효율성"],["commitment","헌신, 전념"],["incentive","혜택, 장려금"],["contract","계약(서), 계약, 계약서 / 수축하다"],["absence","부재, 결석"],["confirmation","확인(서), 확증, 확인, 확인서"],["admission","입장, 입학"],["area","지역, 구역"],["overview","개요, 개관"],["confidence","신뢰 / 자신감"],["fine","벌금"],["damage","피해 / 피해를 입히다"],["strategy","전략"],["method","방식, 수단"],["industry","산업"],["consideration","고려, 배려"],["term","조건 / 기간"],["distance","거리"],["compliance","(법, 명령 등에) 따름, 준수, 따름"],["objective","목표 / 객관적인"],["attraction","명소 / 매력"],["assumption","가정, 추정"],["measure","대책 / 측정하다"],["degree","학위 / 정도"],["code","암호, 규정"],["inspiration","영감, 영감을 주는 사람, 자극을 주는 사람, 영감을 주는 것, 자극을 주는 것"],["adversity","역경, 고난"],["nomination","(후보) 추천, 임명, 후보 추천, 추천"],["deliberation","숙고, 심의"],["discretion","재량(권), 재량, 재량권 / 신중함"],["coverage","(보험 등의) 보상 범위, 보상 범위 / 취재"],["supplement","보충(재), 보충, 보충재 / 보완하다"],["liability","책임, 책무"],["approach","접근(법), 접근, 접근법 / 다가가다"],["personnel","직원들, 인사과"],["reimbursement","상환, 배상"],["directory","주소록, 안내 책자"],["consultant","고문, 컨설턴트"],["certification","증명, 증명서"],["consensus","일치된 의견, 합의"]]],
+["DAY 19 명사 기출 어휘(5)",[["advance","발전 / 승진시키다"],["function","기능, 연회"],["matter","문제, 일"],["increase","증가 / 올리다"],["certificate","증명서, 증서"],["variety","다양(성), 종류, 다양, 다양성"],["care","주의 / 걱정하다"],["concentration","집중 / 농도"],["accommodation","숙박 시설"],["entry","입장 / 출품작"],["standard","기준, 표준"],["statement","명세서, 성명서"],["discussion","논의, 토론"],["component","부품 / (구성) 요소, 구성 요소, 요소"],["apprearance","외관 / 출현"],["position","직책 / 위치시키다"],["appreciation","감사, 감상"],["exception","예외"],["rate","비율 / 가격"],["executive","간부 / 경영의"],["résumé","이력서"],["accomplishment","성취, 완수"],["architect","건축가"],["conference","회의, 총회"],["average","평균(치), 평균, 평균치 / 평범한"],["indicator","지표, 지수"],["accounting","회계(학), 회계, 회계학"],["clearance","(재고) 정리, 재고 정리, 정리 / 인가"],["selection","선발, 선책"],["manuscript","원고"],["expansion","확장, 확대"],["reference","추천인 / 참조"],["labor","노동(력), 노동, 노동력 / 일하다"],["storage","저장, 보관"],["installment","할부(금), 할부, 할부금"],["effect","영향, 효과"],["wage","급여, 임금"],["summary","요약, 개요"],["insurance","보험(금), 보험, 보험금"],["capacity","용량 / 수용력"],["minutes","회의록"],["obligation","의무, 책임"],["quote","견적(액), 견적, 견적액 / 인용하다"],["patent","특허(권), 특허, 특허권 / 특허를 얻다"],["precaution","예방 조치, 예방책"],["implication","암시, 영향"],["decumentation","증거 서류"],["hospitality","서비스업 / 친절"],["setback","차질, 퇴보"],["presence","존재(감), 입지, 존재, 존재감"],["entrepreneur","기업가"],["comparison","비교"],["donation","기부, 기증"]]],
+["DAY 20 형용사 기출 어휘(1)",[["permanent","영구적인 / 상임의"],["competitive","(품질, 가격 따위가) 경쟁력 있는, 경쟁력 있는 / 경쟁의"],["profitable","수익성 있는"],["attentive","주의를 기울이는, 신경을 쓰는"],["creative","창의적인"],["superior","우수한 / 상급의"],["costly","비싼, 비용이 많이 드는"],["associated","관련된, 연합된"],["incorrect","부정확한"],["extensive","광범위한, 폭넓은"],["rare","희귀한, 드문"],["initial","초기의, 처음의"],["fragile","깨지기 쉬운, 파손되기 쉬운"],["multiple","다양한 / 다수의"],["beneficial","유익한, 이로운"],["constant","지속적인, 끊임없는"],["numerous","많은"],["reluctant","꺼리는, 주저하는"],["introductory","서두의, 발매 특가의"],["ongoing","진행 중인, 계속되는"],["tailored","맞춤의, 주문 제작의"],["unexpected","예상치 못한, 뜻밖의"],["risty","위험한"],["reliable","신뢰할 수 있는, 믿을 만한"],["overdue","(지불, 반환 등의) 기한이 지난, 연체된, 기한이 지난"],["efficient","효율적인, 능률적인"],["courteous","예의 바른, 공손한"],["ideal","이상적인"],["stable","안정적인"],["satisfactory","만족스러운"],["automated","자동화된 / 자동의"],["willing","기꺼이 ~하는 / 적극적인"],["persuasive","설득력 있는"],["commercial","상업의 / 광고"],["conscious","알고 있는, 인식하고 있는"],["exclusive","독점적인, 배타적인"],["unprecedented","전례 없는"],["prevalent","일반적인, 널리 퍼진"],["demanding","힘든, 요구가 많은"],["optimal","최적의, 최선의"],["receptive","받아들이는, 수용하는"],["discretionary","자유 재량의, 임의로 선택할 수 있는"],["exempt","(의무, 책임 따위에서) 면제된, 면제된 / 면제하다"],["considerate","배려하는, 이해심 있는"],["adjacent","인접한, 이웃한"],["authentic","진품인, 진정한"],["dedicated","헌신적인, 몰두하는"],["predictable","예측 가능한, 예측할 수 있는"],["accountable","책임이 있는"],["inclement","(날씨가) 궂은, 악천후의, 악천후의, 궂은"],["obsolete","쓸모 없어진, 시대에 뒤진"],["fabulous","아주 멋진, 엄청난"],["rewarding","보람 있는"],["affected","영향을 받는, 해당되는"],["automotive","자동차의"],["confusing","혼란을 주는"],["well received","평이 좋은, 좋은 반응을 얻는"]]],
+["DAY 21 형용사 기출 어휘(2)",[["additional","추가의, 부가적인"],["regular","정기적인, 보통의"],["due","(제출, 반환 등의) 기한이 된, 회비"],["sufficient","(수, 양이) 충분한"],["professional","전문적인, 편리한"],["adequate","적절한, 제대로 된"],["unattended","방치된, 내버려 둔"],["vital","필수적인, 아주 중요한"],["unlimited","무제한의"],["managerial","관리(자)의, 경영(자)의"],["artificial","인공의, 인위적인"],["protective","보호하는, 방어하는"],["steady","안정된, 꾸준한"],["sizable","상당한 크기의, 꽤 큰"],["experienced","경험이 있는, 능숙한"],["noticeable","뚜렷한, 분명한"],["sensitive","민감한, 예민한"],["impressive","인상적인, 감동적인"],["outstanding","탁월한, 미결제된"],["widespread","널리 퍼진, 광범위한"],["visible","(눈에) 보이는, 뚜렷한"],["exceptional","뛰어난, 예외적인"],["personal","개인의, 사적인"],["superb","최고의, 뛰어난"],["enclosed","동봉된"],["eager","열망하는"],["removable","제거할 수 있는, 땔 수 있는"],["positive","긍정적인, 분명한"],["committed","헌신하는, 전념하는"],["previous","이전의"],["likely","~할 것 같은"],["repeated","반복되는, 거듭되는"],["valid","(티켓, 방법 따위가) 유효한, 타당한"],["abundant","충분한, 넘치는"],["rigorous","엄격한, 정밀한"],["tentative","암시의, 잠정적인"],["diverse","다양한"],["ample","충분한, 풍부한"],["lucrative","수익성이 좋은, 고수익의"],["knowledgeable","아는 것이 많은, 박식한"],["principle","주요한, 주된"],["equivalent","동일한, 상응하는"],["entertaining","즐거운, 재미있는"],["perishable","부패하기 쉬운"],["competent","유능한, (능력이) 충분한"],["imperative","필수적인, 반드시 해야 하는"],["redeemable","(현금이나 상품과) 교환할 수 있는"],["skeptical","회의적인, 의심 많은"],["comparable","필적하는, 동종의"],["versatile","(도구 등이) 용도가 많은, (사람이) 다재다능한"]]],
+["DAY 22 형용사 기출 어휘(3)",[["critical","중요한, 비판적인"],["durable","내구성이 좋은, 튼튼한"],["promising","유망한, 기대되는"],["accustomed","악숙한"],["aware","알고 있는"],["valuable","값진, 귀중한"],["repetitive","반복적인"],["unavailable","(물건, 상품 등을) 구할 수 없는, (사람이) 만날 수 없는"],["fiscal","재정의, 회계의"],["effective","효과적인, 효력이 발생하는"],["probable","가능성이 있는, 유망한"],["alternate","대신의, 번갈아 바꾸다"],["affordable","(가격 등이) 적당한, 감당할 수 있는"],["contrary","반대인, 어긋나는"],["accessible","접근할 수 있는, 이용할 수 있는"],["informal","격식을 차리지 않는, 비공식의"],["intensive","집중적인"],["remote","외진, (가능성이) 희박한"],["able","할 수 있는, 유능한"],["notable","주목할 만한, 유명한"],["seasonal","계절의, 특정 계절에 한정된"],["prosperous","번창하는, 발전하는"],["updated","최신의, 갱신된"],["suitable","적합한, 적절한"],["delighted","기뻐하는, 만족하는"],["leading","선도하는, 일류의"],["confidential","기밀의, 비밀의"],["mandatory","의무적인, 필수의"],["defective","결함이 있는, 불량인"],["complicated","복잡한"],["aggressive","적극적인, 공격적인"],["financial","재정의, 금융상의"],["eligible","자격이 있는, 적임인"],["convinced","확신에 찬"],["similar","유사한, 비슷한"],["designated","지정된, 지명된"],["prospective","장례의, 가망이 있는"],["sustainable","지속 가능한"],["unauthorized","권한이 없는, 인가 받지 않은"],["relevant","관련된, 적절한"],["stagnant","(경기가) 침체된, 불경기의"],["disposable","일회용의, 처분할 수 있는"],["indicative","나타내는, 암시하는"],["sophisticated","정교한, 복잡한"],["straightforward","간단한, 직설적인"],["appropriate","적당한, 적절한"],["provisional","임시의, 일시적인"],["delinquent","연체된, 지급 기한이 지난"],["subject","받기 쉬운, 논제"],["optimistic","낙관적인, 긍정적인"],["vibrant","활기찬, 생기가 넘치는"],["cutting-edge","최첨단의"],["ambitious","야심 있는, 패기 넘치는"],["upscale","부유층의, 평균 이상의"],["major","주요한, 중대한"]]],
+["DAY 23 형용사 기출 어휘(4)",[["urgent","긴급한, 시급한"],["whole","전체의, 전체"],["substantial","상당한"],["necessary","필요한"],["possible","가능한"],["particular","특정한, 세부사항"],["healthful","건강에 좋은"],["essential","필수적인, 매우 중요한"],["informative","정보를 제공하는, 유익한"],["existing","기존의, 현존의"],["temporary","임시의, 일시적인"],["revised","수정된, 개정된"],["capable","할 수 있는, 능력이 되는"],["detailed","자세한, 상세한"],["unavoidable","피할 수 없는, 어쩔 수 없는"],["improper","부적절한, 부적합한"],["bulk","대량의, 크기"],["worth","가치가 있는, 가치"],["independent","독립적인, 독자적인"],["related","관련된"],["advisable","바람직한, 권할 만한"],["accomplished","뛰어난, 재주가 많은"],["skilled","숙련된, 노련한"],["responsive","민감하게 반응하는, 신속하게 대응하는"],["significant","상당한, 중요한"],["advanced","고급의, 진보한"],["narrow","좁은, 좁아지다"],["cautious","조심스러운, 신중한"],["native","지방 특산의, 토박이"],["economic","경제의, 경제상의"],["memorable","기억할 만한, 기억에 남는"],["timely","시기적절한, 때맞춘"],["preferred","바람직한, 선호되는"],["outright","명쾌한, 완전한"],["established","기성의, 확립된"],["unwavering","변함없는, 확고한"],["contingent","조건으로 하는, 불확실한"],["exquisite","정교한, 매우 아름다운"],["impeccable","흠 잡을 데 없는"],["preliminary","예비의, 사전의"],["proportional","균형 잡힌, 비례하는"],["subsequent","(시간, 순서상으로) 그 뒤의, 다음에 일어나는"],["picturesque","그림 같은"],["consecutive","연속적인"],["stringent","엄격한"],["exemplary","모범적인, 본보기가 되는"],["anonymous","익명의, 이름을 밝히지 않은"],["controversial","논란거리인, 논란이 많은"],["feasible","실현 가능성이 있는, 실행 가능한"],["predominant","우세한, 지배적인"],["current","현재의"],["pertinent","관련 있는, ~와 관련된(to)"],["resistant","내성이 있는, 저항력이 있는"],["overall","전체의, 전반적인"],["educational","교육의, 교육적인"],["satisfied","만족한"]]],
+["DAY 24 부사 기출 어휘(1)",[["entirely","완전히, 전적으로"],["properly","제대로, 정확하게"],["annually","해마다, 매년"],["accordingly","그에 따라, 그에 맞춰"],["strictly","엄격히"],["relatively","비교적, 상대적으로"],["skillfully","능숙하게, 솜씨 있게"],["reasonably","합리적으로, 적당하게"],["definitely","분명히, 확실하게"],["expressly","분명히, 명확히"],["considerably","상당히, 많이"],["totally","완전히, 전적으로"],["periodically","정기적으로, 주기적으로"],["commonly","보통, 일반적으로"],["securely","단단히, 안전하게"],["largely","주로, 대체로"],["thoroughly","철저히, 완전히"],["markedly","현저하게, 두드러지게"],["comfortably","안락하게, 편안히"],["immediately","즉시"],["momentarily","일시적으로, 잠깐"],["specifically","특별히, 구체적으로"],["dramatically","급격하게, 대폭"],["accidentally","뜻하지 않게, 잘못하여"],["overly","지나치게, 너무"],["recently","최근에"],["highly","매우, 대단히"],["widely","널리, 광범위하게"],["densely","밀집하여, 빽빽하게"],["strategically","전략적으로"],["primarily","주로"],["currently","현재"],["eventually","결국, 언젠가는"],["early","일찍, 초기의"],["persistently","지속적으로, 고집스럽게"],["formerly","이전에"],["moderately","적당하게, 알맞게"],["consistently","꾸준히, 항상"],["absolutely","절대적으로, 완전히"],["fairly","상당히, 공평하게"],["inadvertently","우연히, 부주의하게"],["apparently","외관상으로, 보아하니"],["adversely","부정적으로, 불리하게"],["prominently","두드러지게, 눈에 띄게"],["occasionally","가끔, 때때로"],["previously","이전에, 과거에"],["evenly","균등히, 골고루"],["exclusively","오로지, 독점적으로"],["customerily","일반적으로, 관례상"],["overwhelmingly","압도적으로, 대단히"],["internally","내부에, 내부적으로"],["firmly","확고하게, 단호히"],["drastically","급격히, 현저히"]]],
+["DAY 25 부사 기출 어휘(2)",[["precisely","바로, 정확히"],["directly","곧바로, 직접"],["clearly","명백하게, 또렷하게"],["approximately","대략, 어림잡아"],["separately","따로, 별도로"],["solely","오로지, 단독으로"],["increasingly","점점, 더욱 더"],["tightly","단단히, 꽉"],["virtually","사실상, 거의"],["completely","완전히, 철저하게"],["necessarily","(부정문) 반드시 (~은 아닌), 필연적으로"],["nearly","거의, 하마터면"],["casually","약식으로, 간편하게"],["unusually","이례적으로, 유난히"],["effortlessly","힘들이지 않고, 쉽게"],["accurately","정확하게"],["promptly","지체 없이, 정확히 제시간에"],["easily","쉽게, 수월하게"],["extremely","극도로, 대단히"],["preferably","가급적으로"],["partially","부분적으로, 불공평하게"],["carefully","주의 깊게, 신중히"],["punctually","시간에 맞춰, 늦지 않게"],["slightly","약간, 조금"],["officially","공식적으로, 정식으로"],["normally","보통, 통상적으로"],["frequently","자주, 흔히"],["conveniently","편리하게"],["closely","면밀하게, 밀접하게"],["hardly","거의 ~ 않다"],["automatically","자동으로"],["shortly","곧, 간단히"],["mistakenly","실수로, 잘못되어"],["rapidly","급속하게, 빨리"],["typically","보통, 일반적으로"],["continually","끊임없이, 지속적으로"],["especially","특히"],["efficiently","능률적으로, 효율적으로"],["temporarily","임시로, 일시적으로"],["respectively","각각, 각자"],["mutually","서로, 상호 간에"],["ultimately","궁극적으로, 결국"],["unexpectedly","예상외로, 뜻밖에"],["habitually","습관적으로"],["explicitly","명확하게, 분명하게"],["meticulously","꼼꼼하게"],["briefly","잠시, 간략하게"],["routinely","일상적으로, 정기적으로"],["simultaneously","동시에"],["unanimously","만장일치로"]]],
+["DAY 26 전치사 기출 어휘",[["under","~ 아래에"],["across","~을 건너서, ~에 걸쳐서"],["throughout","~ 내내, 도처에"],["within","~ 이내에, ~ 안에"],["toward","~경, 향해서"],["given","~을 고려해 볼 때"],["as of","~부터"],["contrary to","~에 반하여, ~와 달리"],["since","~ 이래로"],["along with","~와 더불어"],["in advance of","~에 앞서"],["thanks to","~ 덕분에, ~ 때문에"],["as to","~에 관하여"],["between","둘 사이에"],["based on","~에 근거하여"],["in the process of","~의 과정에 있는, ~의 과정에서"],["in the heart of","~의 중심부에, ~의 한가운데에"],["in the event of","~에 대비하여, 만약 ~의 경우에는"],["in exchange for","~ 대신에, ~와 교환으로"],["excluding","~을 제외하고"],["prior to","~ 전에, ~에 앞서"],["including","~을 포함하여"],["besides","~ 외에, 게다가"],["as part of","~의 일환으로"],["ahead of","~보다 빨리, ~의 앞에"],["during","~ 동안"],["due to","~ 때문에, ~ 탓에"],["as a result of","~의 결과로"],["on behalf of","~을 대표하여, ~을 대신하여"],["regardless of","~와 상관없이"],["in response to","~에 대한 응답으로, ~에 대응하여"],["according to","~에 따라"],["in keeping with","~에 따라, ~에 맞추어, ~에 일치하여"],["in contrast to","~와 대조적으로, ~와 대조를 이루어"],["regarding","~에 관하여"],["until","~까지"],["because of","~ 때문에"],["beyond","~을 넘어서"],["despite","~에도 불구하고"],["A as well as B","B뿐만 아니라 A도"],["rather than","~보다는 차라리, ~ 대신에"],["in terms of","~의 관점에서"],["relating to","~와 관련한"],["following","~후에, 다음의"],["instead of","~ 대신에"],["by means of","~을 통해"],["by way of","~을 경유하여, ~을 통해"],["with regard to","~에 관하여"],["apart from","~ 이외에, ~은 제외하고"],["in light of","~에 비추어, ~을 고려하여"],["in celebration of","~을 축하하여"],["depending on[upon]","~에 따라"],["in compliance with","~을 준수하여, ~에 따라"],["in honor of","~에 경의를 표하여, ~을 축하하여"],["in favor of","~을 찬성하여, ~을 위하여"],["as opposed to","~와 달리, ~와 대조적으로"]]],
+["DAY 27 편지_이메일",[["dimensions","치수, 규모"],["customized","주문 제작의, 맞춤의"],["online order","온라인 주문"],["in stock","재고가 있는"],["back order","밀린 주문, 이월 주문"],["due","지불해야 하는, ~하기로 예정된"],["price range","가격폭, 가격대"],["prepaid","선불의, 선납된"],["credit card statement","신용 카드 명세서"],["separate","별도의, 분리된"],["wholesale","도매의, 대량의"],["payment arrangements","결제 방식, 지불 약정"],["continued","계속되는"],["query","문의"],["accommodate","부응하다, 수용하다"],["confirmation","확인(서), 확정"],["unusable","사용 불가능한"],["discomfort","불편"],["disappointed","실망한, 낙담한"],["unfortunately","불행히도, 유감스럽게도"],["crack","금, 금이 가다"],["defect","결함"],["faulty","흠이 있는"],["persist","지속되다, 계속되다"],["fall short of","~에 못 미치다"],["original packaging","원래 포장 (상태)"],["component","구성품, 구성 요소"],["money-back guarantee","환불 보증(서)"],["balance","잔액, 잔금"],["credit","입금하다"],["repayment","반환(금), 상환"],["reimburse","돌려주다, 반환하다"],["proof of purchase","구매 증명(서)"],["full refund","전액 환불"],["application materials","지원 서류"],["advanced degree","고급 학위 (석사, 박사)"],["well suited","적합한, 잘 어울리는"],["capacity","지위, 역할"],["hiring decision","채용 결정"],["good fit","적임자, 꼭 맞는 것"],["strong background","막강한 이력, 탄탄한 배경"],["work ethic","직업 윤리"],["tremendous","엄청난, 대단한"],["invaluable","귀중한, 매우 유용한"],["referral","소개, 추천(서), 보내기"],["report to","~으로 출근[출두]하다"],["employment agreement","고용 계약(서), 취업 동의서"],["contract position","계약직"],["probationary period","수습 기간, 시험 채용 기간"],["excel","능가하다, 뛰어나다"],["dedication","헌신, 전념"],["funding","자금, 재정 지원"],["business plan","사업 계획(서)"],["loan application","대출[대여] 신청(서)"],["proceed with","~을 진행하다, 계속해서 하다"],["calculation","계산, 산출"],["draw up","만들다, 작성하다"],["acceptable","받아들일 수 있는, 용인 가능한"],["take into account","~을 계산에 넣다, 고려[참작]하다"],["adjustment","수정, 조정"],["breach","위반"],["pricing","가격 (책정)"],["scope","범위"],["subcontract","하도급을 주다"],["renew one's contract","계약을 갱신하다"],["follow up on","후속 조치를 하다, 추가로 연락하다"],["provision","조항"],["celebratory","기념하는, 축하하는"],["outing","야유회, 견학"],["turn out","참가자의 수, 참석률"],["count","총계, 수치"],["presenter","발표자, 진행자"],["panelist","토론자, 패널의 일원"],["availability","시간이 되는지 여부, 가능한 일정"],["respective","각자의, 각각의"],["adjourn","(회의 등을) 휴회하다"],["biographical","전기의, 인물에 관한"],["duration","(지속되는) 시간"],["time slot","시간대"],["fill up","자리가 차다"],["beforehand","사전에, 미리"],["forthcoming","준비되는, 다가오는"],["ambience","분위기"],["audiovisual","시청각의"]]],
+["DAY 28 공지_기사",[["routine maintenance","정기 점검[정비]"],["pause","정지[중지]시키다, 멈춤"],["attempt","시도하다, 시도"],["realize","실천[실현]하다"],["power outage","정전, 송전 정지"],["disconnect","연결[접속]을 끊다, 분리하다"],["distracting","방해가 되는"],["patience","인내, 양해"],["intention","의사, 의도"],["coordinator","책임자, 담당자"],["warrant","정당[타당]화하다"],["urge","권고하다, 촉구하다"],["impending","임박한, 곧 닥칠"],["assignment","과업, 배정"],["in effect","시행[발효] 중인"],["telecommute","재택 근무하다"],["stipulate","규정하다, 명기하다"],["adopt","도입하다, 채택하다"],["revised policy","개정된 정책"],["streamline","간소화[능률화]하다"],["switch","전환, 전환하다"],["enhancement","향상[개선], 증대"],["familiarize","익숙하게 하다"],["dress code","복장 규정"],["provided (that)","만약 ~이라면, ~이라는 조건 하에"],["seamless","매끄러운, 순조로운"],["logistical","실행과 관련된, 제반 업무와 관련된"],["prove","~임이 드러나다[판명되다]"],["refurbishment","개조, 재단장"],["pilot test","시범 테스트"],["beginning (on)","~부터, ~일자로"],["pay stub","급여 명세서"],["content","내용물"],["unanimous","만장일치의, 의견이 같은"],["council","의회, 협의회"],["municipal","시의, 지방 자치의"],["voice","(말로) 표하다"],["advocate","옹호자, 지지하다"],["structure","건물, 구조물"],["complex","복합 단지[건물]"],["restoration","복구, 복원"],["infrastructure","기본 시설, 사회[경제] 기반 시설"],["unoccupied","비어 있는, 점유되지 않은"],["congested","혼잡한"],["divert","우회시키다, 전환시키다"],["feasibility","실행 가능성"],["up and running","제대로 운영[작동]되는"],["operational","가동되는, 준비가 갖춰진"],["reopening","재개장"],["transformation","변신, 탈바꿈"],["in time for","~하는 시기에 맞춰"],["festivity","축제 행사, 축제 기분"],["founder","창립자, 설립자"],["operator","운영자[조작자], 회사"],["distributor","유통업자[회사], 판매 대리점"],["provider","공급업자[업체]"],["capital","자본금, 자금"],["commerce","상업, 무역"],["export","수출, 수출하다"],["portion","부분, 분배하다"],["customer base","고객층, 고객 기반"],["strategic","전략적인"],["joint","공공의, 합동의"],["profit margin","이윤, 차익금"],["reap","거두다, 얻다"],["strengthen","강화하다"],["formula","방식, 공식"],["reportedly","전하는 바에 따르면, 소문에 의하면"],["spokesperson","대변인"],["step down","물러나다, 퇴임하다"],["critic","비평가, 평론가"],["characteristic","특징, 특색"],["portray","나타내다, 묘사하다"],["acclaimed","호평 받는, 찬사를 받는"],["date","시작되다, 기원을 가지다"],["rotate","교대로 하다, 순환시키다"],["award-winning","상을 받은"],["scene","분야, -계"],["praise","찬사, 칭찬하다"],["emerging","떠오르는, 최근 생겨난"],["adapt","각색하다, 개작하다"],["playwright","극작가"],["run","상영, 계속 공연[개최]되다"],["publication","출판(물)"],["entitle","제목을 붙이다"],["literature","문학 (작품)"],["excerpt","발췌[인용] 부분"],["unveil","공개하다, 발표하다"]]],
+["DAY 29 광고",[["branding","브랜드 관리"],["solid","단단한, 견고한"],["compact","소형의"],["apparel","의류"],["portable","휴대용의"],["avid","열광적인, 열성인"],["promotional","홍보의, 판촉의"],["synthetic","합성의"],["trend","추세, 동향"],["unclutter","정돈하다, 어지른 것을 치우다"],["state-of-the-art","최첨단의, 최신식의"],["stain","얼룩"],["single","단 하나의"],["debut","선보이다"],["flat rate","균일가"],["be outfitted with","~이 갖춰져 있다"],["culinary","요리의"],["taste","맛, 맛보다"],["container","용기, 그릇"],["modest","(규모가) 크지 않은, 겸손한"],["high-profile","세간의 이목을 끄는, 유명한"],["restriction","제한, 제약"],["casual fare","일상적인 식사"],["practical","실용적인"],["freight","화물"],["fund-raiser","기금 모금 행사"],["achieve one's goal","목표를 달성하다"],["seasoned","경험 많은, 숙련된"],["hands-on","직접 해보는"],["flexibility","융통성, 유연함"],["pricey","값비싼"],["cost-effective","비용 효율이 높은"],["popularity","인기"],["novice","초보자"],["in-house","사내의, 사내에서"],["residential","주거의, 거주용의"],["take on","~을 맡다"],["qualifications","자격 요건"],["possess","갖추다"],["commensurate","상응하는"],["benefits","복리 후생"],["interpersonal skill","대인관계 능력"],["desirable","바람직한, 우대하는"],["compensation package","(급여와 복리후생을 포함한) 총 보수"],["urban","도심의"],["lease","임대, 임대하다"],["utilities","수도, 가스 등의 비용"],["insulation","단열, 방음 처리"],["adjoining","인접한, 서로 접한"],["boast","뽐내다, 자랑하다"],["luxurious","고급의, 호화로운"],["responsibilities [duties/tasks] include","업무에는 ~이 포함된다"],["exterior","외부의, 외관"],["magnificent","화려한, 훌륭한"],["family-owned","가족이 운영하는"],["on-premises","구내의, 부지 내의"],["be subject to","~의 대상이다"],["perk","특전"],["earn","얻다, 벌다"],["up-to-date","최신의"],["occupancy schedule","숙박 일정"],["lodging arrangement","숙박 준비, 숙박 예약"],["leisure","여가"],["scenic","경치가 좋은, 풍경의"],["heritage","문화 유산"],["excursion","짧은 여행, 소풍"],["spectacular","장관인, 극적인"],["on board","승선한, 탑승한"],["panoramic","파노라마의, 차례로 펼쳐지는"],["round-trip","왕복의, 왕복 여행의"]]],
+["DAY 30 기타 양식",[["testimonial","추천의 글, 증명서"],["comment","언급, 의견을 말하다"],["poll","여론 조사"],["electronic form","온라인 양식"],["rank","계급, 등급을 매기다"],["compelling","설득력 있는, 강제적인"],["drawing","추첨, 제비 뽑기"],["out of place","잘못 놓인, 부적절한"],["misleading","오해하게 하는"],["associate","연관 짓다, 동료"],["deduct","빼다, 공제하다"],["reduction","할인, 축소"],["itemlized","항목별로 구분한"],["tracking system","추적 시스템"],["appear","나타나다"],["scale","(측정용) 등급, 척도"],["aid","도움, 돕다"],["hazard","위험"],["upon request","요청 시에"],["attend to","처리하다"],["ventilation","환기"],["shrink","줄어들다"],["mishandle","잘못 다루다"],["accessibility","접근 가능성"],["operation","작용, 조작"],["energy-efficient","에너지 효율이 좋은"],["wildlife","야생동물"],["nature reserve","자연 보호구역"],["waste","쓰레기"],["landfill","쓰레기 매립(지)"],["wilderness","황야, 황무지"],["flammable","타기 쉬운"],["environmentally [eco] friendly","환경 친화적인"],["advocacy","옹호, 지지"],["sightseeing","관광"],["travel agent","여행사 직원"],["airfare","항공료"],["carry-on","휴대용의, 비행기 내에 들고 갈 수 있는"],["passenger","승객"],["boarding pass","탑승권"],["advance reservation","사전 예약"],["baggage claim","(공항의) 수하물 찾는 곳"],["stunning","놀랄 만큼 멋진, 훌륭한"],["dining establishment","식당"],["unwind","긴장을 풀다"],["seasonality","계절 변동, 계절 특성"],["self-guided","셀프 가이드의(지도와 안내서를 통해 관광지를 둘러보는)"],["hustle and bustle","혼잡, 번잡함"],["iconic","상징적인, 대표적인"],["via","~을 통하여, 경유하여"],["inaccessible","접근할 수 없는"],["impede","방해하다, 지체시키다"],["preview","시사회"],["autograph","서명, 서명하다"],["composer","작곡가"],["string","줄, 현악기"],["custume","(무대) 의상, 복장"],["be entitled to","~을 받을 자격이 되다"],["intermission","중간 휴식 시간"],["troupe","공연단"],["virtual","가상의, 사실상의"],["atrium","중앙 홀"],["an array of","다양한"],["choir","합창단"],["exhibition","전시(회)"],["venue","(공연, 행사 등이 벌어지는) 장소"],["cordially","정중히"],["celebrity","유명인사, 명사"],["non-profit","비영리의, 영리가 목적이 아닌"],["showcase","전시하다, 소개하다"]]]
+];
+
+// ---------- data model ----------
+const DAYS = RAW.map(([title, words], d) => {
+  const m = title.match(/^DAY\s*(\d+)\s*(.*)$/);
+  return { n: +m[1], name: m[2].replace(/_/g, ' · '), title, words: words.map(([w, mean, ex], i) => ({ key: d + ':' + i, d, w, m: mean, ex: ex || '' })) };
+});
+const ALL = DAYS.flatMap(x => x.words);
+const GROUPS = [
+  ['LC 필수 어휘 · Part 1–4', 1, 10],
+  ['동사 기출', 11, 14],
+  ['명사 기출', 15, 19],
+  ['형용사 기출', 20, 23],
+  ['부사 · 전치사 기출', 24, 26],
+  ['RC 지문 유형별', 27, 30]
+];
+
+// ---------- per-viewer storage ----------
+const store = {
+  get(k, def) { try { const v = localStorage.getItem('toeic30:' + k); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem('toeic30:' + k, JSON.stringify(v)); } catch (e) {} }
+};
+// "known" = most recent test answer for the word was correct (manual marks under the old 'known' key are ignored)
+let known = new Set(store.get('passed', []));
+let wrong = store.get('wrong', {});      // key -> miss count
+let best = store.get('best', {});        // day n -> best %
+const saveKnown = () => store.set('passed', [...known]);
+const saveWrong = () => store.set('wrong', wrong);
+
+// ---------- helpers ----------
+const $view = document.getElementById('view');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pad = n => String(n).padStart(2, '0');
+const oneLine = w => w.replace(/\n/g, ' · ');
+// Speech uses the voices installed on the viewer's device. Pick an American English voice
+// (any English voice as a fallback); with none installed, explain instead of reading in Korean.
+let enVoice = null;
+function pickVoice() {
+  try {
+    const all = speechSynthesis.getVoices();
+    const us = all.filter(v => /^en[-_]US$/i.test(v.lang)), en = all.filter(v => /^en\b/i.test(v.lang));
+    const pref = [/Google US English/i, /Jenny/i, /Aria/i, /Samantha/i, /Ava/i, /Zira/i, /David/i, /Guy/i];
+    enVoice = pref.map(p => us.find(v => p.test(v.name))).find(Boolean) || us[0] || en[0] || null;
+  } catch (e) {}
+}
+try { pickVoice(); speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) {}
+function toast(html, ms) {
+  const t = document.getElementById('toast');
+  t.innerHTML = `<div>${html}</div><button class="btn" id="toast-x">닫기</button>`;
+  t.hidden = false;
+  t.querySelector('#toast-x').onclick = () => { t.hidden = true; };
+  clearTimeout(toast.timer); if (ms) toast.timer = setTimeout(() => { t.hidden = true; }, ms);
+}
+function speak(text) {
+  try {
+    if (!enVoice) pickVoice();
+    if (!enVoice) {
+      toast(`<b>이 기기에 영어 음성이 없어 영어 발음으로 읽을 수 없습니다.</b><br>
+        Windows <b>설정 → 시간 및 언어 → 음성 → 음성 추가</b>에서 <b>English (United States)</b>를 설치한 뒤 이 페이지를 다시 열어 주세요.
+        Chrome이나 Edge에서 이 링크를 열면 설치 없이 영어 음성으로 들을 수 있습니다.`);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ', ').replace(/[\[\]()]/g, ' '));
+    u.voice = enVoice; u.lang = enVoice.lang;
+    u.rate = .9; speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+// ---------- my notes: per viewer, saved to the account when signed in, otherwise this browser ----------
+let notes = store.get('notes', {}), notesCol = null, editingKey = null;
+// starred words: one document holding every starred key; writes are chained so only one is in flight
+let stars = new Set(store.get('stars', [])), starsRef = null, starWrite = Promise.resolve(), onlyStars = false;
+function writeStars() {
+  const keys = [...stars];
+  if (!starsRef) { store.set('stars', keys); return; }
+  starWrite = starWrite.then(() => starsRef.set({ keys, updatedAt: Date.now() })).catch(() => {
+    store.set('stars', keys); toast('별표를 계정에 저장하지 못해 이 브라우저에 저장했습니다.', 5000);
+  });
+}
+function toggleStar(key) { stars.has(key) ? stars.delete(key) : stars.add(key); writeStars(); }
+const noteDocId = key => 'note-' + key.replace(':', '-');
+const saveLocalNotes = () => store.set('notes', notes);
+function refreshNotes() {
+  // never re-render under an open editor; the draft would be lost
+  if (editingKey) return;
+  if (tab === 'study') renderStudy();
+}
+(async () => {
+  try {
+    const use = window.claude && window.claude.use;
+    if (!use) return;
+    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    const uid = user && await user.id();
+    if (!db || !uid) return;
+    const col = db.collection('data/users/' + uid);
+    const sRef = col.doc('stars');
+    let firstStars = true;
+    sRef.onSnapshot(snap => {
+      const remote = snap.exists && Array.isArray(snap.data().keys) ? snap.data().keys : [];
+      if (firstStars) {
+        firstStars = false; starsRef = sRef;
+        // carry stars set in this browser before the account store was reachable
+        const merged = new Set([...remote, ...stars]);
+        store.set('stars', []);
+        stars = merged;
+        if (merged.size !== remote.length) writeStars();
+      } else stars = new Set(remote);
+      refreshNotes();
+    }, () => { starsRef = null; });
+    let first = true;
+    col.onSnapshot(snap => {
+      const next = {};
+      snap.docs.forEach(d => { const b = d.data(); if (d.id.startsWith('note-') && b && b.key && b.text) next[b.key] = b.text; });
+      if (first) {
+        first = false; notesCol = col;
+        // carry notes written in this browser before the account store was reachable
+        const local = Object.entries(notes).filter(([k]) => !(k in next));
+        (async () => { for (const [k, text] of local) { try { await col.doc(noteDocId(k)).set({ key: k, text, updatedAt: Date.now() }); } catch (e) {} } })();
+        local.forEach(([k, t]) => { next[k] = t; });
+        store.set('notes', {});
+      }
+      notes = next; refreshNotes();
+    }, () => { notesCol = null; });
+  } catch (e) {}
+})();
+async function saveNote(key, text) {
+  text = text.trim();
+  if (text) notes[key] = text; else delete notes[key];
+  if (notesCol) {
+    try {
+      const ref = notesCol.doc(noteDocId(key));
+      text ? await ref.set({ key, text, updatedAt: Date.now() }) : await ref.delete();
+      return;
+    } catch (e) { toast('메모를 계정에 저장하지 못해 이 브라우저에 저장했습니다.', 5000); }
+  }
+  saveLocalNotes();
+}
+// accepted spellings: "Pack (up)" -> "pack up" / "pack"; "fill out[in]" -> "fill out" / "fill in"
+function spellings(w) {
+  const out = new Set();
+  const norm = s => s.toLowerCase().replace(/\s+/g, ' ').trim();
+  for (const part of w.split('\n')) {
+    out.add(norm(part.replace(/[()]/g, '')));
+    out.add(norm(part.replace(/\([^)]*\)/g, '')));
+    const br = part.match(/^(.*?)(\w+)\[(\w+)\](.*)$/);
+    if (br) { out.add(norm(br[1] + br[2] + br[4])); out.add(norm(br[1] + br[3] + br[4])); }
+    out.add(norm(part.replace(/\[[^\]]*\]/g, '').replace(/[()]/g, '')));
+  }
+  return out;
+}
+const isRight = (input, w) => spellings(w).has(input.toLowerCase().replace(/\s+/g, ' ').trim());
+// accepted meanings: every comma/slash-separated sense; "준비[조직]하다" -> 준비하다 / 조직하다;
+// "(액체 등을) 붓다", "보증(서)" -> with or without the bracketed part. Spaces and punctuation are ignored.
+const normKo = s => s.replace(/[\s.,·~?!'"‘’“”…:;-]/g, '').toLowerCase();
+// split on , / ; and newlines, but not inside (…) or […]: "(거울, 물 등에) 비추다" stays one sense
+function splitSenses(m) {
+  const out = []; let depth = 0, cur = '';
+  for (const ch of m) {
+    if (ch === '(' || ch === '[') depth++;
+    if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
+    if (!depth && /[,/;\n]/.test(ch)) { out.push(cur); cur = ''; } else cur += ch;
+  }
+  out.push(cur);
+  return out.map(s => s.trim()).filter(Boolean);
+}
+function senseVariants(part) {
+  let vs = [part];
+  for (let guard = 0; guard < 4 && vs.some(v => /\[[^\]]*\]/.test(v)); guard++)
+    vs = vs.flatMap(v => {
+      const b = v.match(/([가-힣A-Za-z0-9]*)\[([^\]]*)\]/);
+      return b ? [v.replace(b[0], b[1]), v.replace(b[0], b[2])] : [v];
+    });
+  const out = new Set();
+  for (const v of vs) { out.add(normKo(v.replace(/[()]/g, ''))); out.add(normKo(v.replace(/\([^)]*\)/g, ''))); }
+  out.delete('');
+  return out;
+}
+function meaningRight(input, parts) {
+  const ok = new Set(parts.flatMap(p => [...senseVariants(p)]));
+  return input.split(/[,/]/).map(normKo).filter(Boolean).some(a =>
+    ok.has(a) || ok.has(a + '하다') || (a.endsWith('하다') && ok.has(a.slice(0, -2))));
+}
+// Part of speech of one Korean sense, read from its ending: ~다 verb, ~한/~는/~의 adjective,
+// ~게/~히/~으로 adverb, ~에 따라 style phrases; the Day's category settles adverb and preposition Days.
+const POS_ADV = /^(미리|즉시|거의|매우|곧|특히|잠시|잠깐|대략|약간|조금|일찍|현재|매년|해마다|주로|보통|가끔|때때로|결국|언젠가는|반드시|오로지|바로|직접|곧바로|점점|더욱 ?더|사실상|꽉|역시|게다가|함께|대단히|너무|따로|각각|각자|서로|대폭|많이|항상|골고루|관례상|하마터면|단단히|어림잡아|보아하니|가급적으로|자주|흔히|간단히|빨리|쉽게|추가로|거의 ~ 않다|떨어져|해외로|컴퓨터로|그렇게 하면|전하는 바에 따르면|소문에 의하면)$/;
+const POS_ADJ = /(는|은|한|된|운|른|쁜|픈|큰|긴|든|닌|춘|둔|칠|을|린|친|싼|진|찬|난|문|힌|인|의)$/;
+// nouns that happen to end like a modifier (judged on the last word: "최종 기한", "부하 직원")
+const POS_NOUN = /^(주의|부주의|회의|동의|문의|논의|합의|심의|협의|항의|제의|정의|의의|제한|권한|기한|시간|순간|공간|기간|수령인|수취인|추천인|대리인|행상인|원인|개인|증인|확인|할인|승인|요인|승진|사진|비난|곤란|질문|주문|신문|소문|전문|만찬|기관|직원|경영진|오찬|증진|전진|행진|고난|고문|대변인)$/;
+function posOf(part, dayN) {
+  const t = part.replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').trim() || part.replace(/[()]/g, '').trim();
+  if (POS_ADV.test(t)) return '부사';
+  if (/다$/.test(t)) return '동사';
+  if (dayN === 26) return '전치사·구';
+  if (!POS_NOUN.test(t.split(' ').pop()) && POS_ADJ.test(t)) return '형용사';
+  if (/(게|히|으로|에서|에|하여|해서|어서)$/.test(t)) return '부사';
+  if (t.includes('~')) return '전치사·구';
+  return dayN === 24 || dayN === 25 ? '부사' : '명사';
+}
+// conjunctions are few enough to list; all of their meanings form one 접속사 group
+const CONJ_WORDS = /^(provided \(that\)|\(just\) in case|not until ~)$/i;
+function posGroups(x) {
+  const n = DAYS[x.d].n;
+  if (CONJ_WORDS.test(x.w.trim())) return [['접속사', splitSenses(x.m)]];
+  const g = new Map();
+  for (const p of splitSenses(x.m)) { const k = posOf(p, n); if (!g.has(k)) g.set(k, []); g.get(k).push(p); }
+  return [...g];
+}
+// dictionary-style markers shown before the English word: n v a ad prep conj phr
+const POS_CODE = { 명사: 'n', 동사: 'v', 형용사: 'a', 부사: 'ad', 접속사: 'conj' };
+const POS_NAME = { n: '명사 (Noun)', v: '동사 (Verb)', a: '형용사 (Adjective)', ad: '부사 (Adverb)', prep: '전치사 (Preposition)', conj: '접속사 (Conjunction)', phr: '구 (Phrase)' };
+function posCode(pos, x) {
+  if (pos !== '전치사·구') return POS_CODE[pos];
+  // Day 26 is the preposition Day, so "due to" there is prep; elsewhere a multi-word ~ expression is phr
+  if (DAYS[x.d].n === 26) return 'prep';
+  return /\s/.test(x.w.replace(/\([^)]*\)/g, '').trim()) ? 'phr' : 'prep';
+}
+const ptag = c => `<i class="pt pt-${c}" title="${POS_NAME[c]}" aria-label="${POS_NAME[c]}">${c}</i>`;
+// drop senses already covered by a fuller one: "(물에) 뜨다, 뜨다" -> "(물에) 뜨다", "보증(서), 보증" -> "보증(서)"
+function dedupeSenses(parts) {
+  return parts.filter((s, i) => parts.indexOf(s) === i &&
+    !parts.some(t => t !== s && t.length > s.length && senseVariants(t).has(normKo(s))));
+}
+// Meanings with a marker in front. LC Days (01–10): one meaning per line, verbs first, then
+// nouns, adjectives, adverbs. Other Days: one line per part of speech, in the word list's order.
+const POS_ORDER = ['v', 'n', 'a', 'ad', 'prep', 'conj', 'phr'];
+const rowCache = new Map();
+function meaningRows(x) {
+  if (rowCache.has(x.key)) return rowCache.get(x.key);
+  const groups = posGroups(x).map(([p, parts]) => [posCode(p, x), dedupeSenses(parts)]);
+  const rows = DAYS[x.d].n <= 10
+    ? groups.flatMap(([c, parts]) => parts.map(t => [c, t])).sort((a, b) => POS_ORDER.indexOf(a[0]) - POS_ORDER.indexOf(b[0]))
+    : groups.map(([c, parts]) => [c, parts.join(', ')]);
+  rowCache.set(x.key, rows);
+  return rows;
+}
+const meaningHTML = (x, inline) =>
+  `<span class="mrows${inline ? ' inline' : ''}">${meaningRows(x).map(([c, t]) => `<span class="mrow">${ptag(c)}${esc(t)}</span>`).join(inline ? ' ' : '')}</span>`;
+
+// ---------- tabs ----------
+let tab = 'home';
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => go(b.dataset.tab));
+function go(t, arg) {
+  tab = t;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === (t === 'study' ? 'home' : t === 'quiz' ? 'test' : t)));
+  window.scrollTo(0, 0);
+  ({ home: renderHome, study: renderStudy, test: renderTestSetup, quiz: renderQuiz, wrong: renderWrong })[t](arg);
+}
+
+// ---------- home ----------
+function renderHome() {
+  const k = known.size, w = Object.keys(wrong).length;
+  let html = `<section class="summary" aria-label="학습 현황">
+    <div><b>${ALL.length.toLocaleString()}</b><span>전체 단어</span></div>
+    <div><b>${k.toLocaleString()}</b><span>외운 단어</span></div>
+    <div><b>${Math.round(k / ALL.length * 100)}%</b><span>진도</span></div>
+    <div><b>${w}</b><span>오답노트</span></div>
+  </section>`;
+  for (const [label, a, b] of GROUPS) {
+    html += `<section class="group"><h2>${label}</h2><div class="days">`;
+    for (const day of DAYS.filter(x => x.n >= a && x.n <= b)) {
+      const kn = day.words.filter(x => known.has(x.key)).length;
+      const pct = kn / day.words.length * 100;
+      const bs = best[day.n];
+      html += `<button class="day" data-n="${day.n}">
+        <span class="num">${pad(day.n)}</span>
+        <span class="t">${esc(day.name)}</span>
+        <span class="meta"><span class="mono">${kn}/${day.words.length}</span><span class="bar"><i style="width:${pct}%"></i></span>${bs != null ? `<span class="mono" title="최고 시험 점수">${bs}점</span>` : ''}</span>
+      </button>`;
+    }
+    html += `</div></section>`;
+  }
+  $view.innerHTML = html;
+  $view.querySelectorAll('.day').forEach(b => b.onclick = () => go('study', +b.dataset.n));
+}
+
+// ---------- pinned top area ----------
+// The page header and a Day's controls stay put while the word list scrolls. Their heights go into
+// --hdr / --pin so the Day controls stick right under the header and rows scroll into view below both.
+const setH = (name, el) => document.documentElement.style.setProperty(name, (el ? el.offsetHeight : 0) + 'px');
+const hdrEl = document.querySelector('header.top');
+let pinObs = null;
+try { new ResizeObserver(() => setH('--hdr', hdrEl)).observe(hdrEl); } catch (e) {}
+setH('--hdr', hdrEl);
+function watchPin(el) {
+  setH('--pin', el);
+  try { if (pinObs) pinObs.disconnect(); pinObs = new ResizeObserver(() => setH('--pin', el)); pinObs.observe(el); } catch (e) {}
+}
+
+// ---------- study ----------
+const openEx = new Set();
+let studyMode = store.get('mode', 'list'), hideCol = 'none', cardIdx = 0, cardFlip = false, cardOrder = null, cardOnlyUnknown = false;
+function renderStudy(n) {
+  if (n != null && n !== renderStudy.n) { cardIdx = 0; cardFlip = false; cardOrder = null; }
+  if (n != null) renderStudy.n = n;
+  const day = DAYS.find(x => x.n === renderStudy.n);
+  const kn = day.words.filter(x => known.has(x.key)).length;
+  let html = `<div class="pin"><div class="studyhead">
+    <div><button class="btn" id="back">← Day 목록</button></div>
+    <div class="row">
+      <span class="seg" role="group" aria-label="학습 방식">
+        <button data-mode="list" aria-pressed="${studyMode === 'list'}">단어 목록</button>
+        <button data-mode="card" aria-pressed="${studyMode === 'card'}">플래시카드</button>
+      </span>
+      <button class="btn primary" id="testday">이 Day 시험 보기</button>
+    </div>
+  </div>
+  <div class="studyhead"><h2><span class="mono" style="color:var(--accent)">DAY ${pad(day.n)}</span> ${esc(day.name)}</h2><span class="muted"><span class="mono">외운 단어 ${kn}/${day.words.length}</span><span class="hint-long"> · 시험에서 맞힌 단어는 <span style="color:var(--known);font-weight:700">연두색</span>으로 표시되고, 틀리면 원래 색으로 돌아갑니다</span></span></div>`;
+  html += (studyMode === 'list' ? listControls(day) : '') + `</div>`;
+  html += studyMode === 'list' ? listHTML(day) : cardHTML(day);
+  $view.innerHTML = html;
+  watchPin($view.querySelector('.pin'));
+  $view.querySelector('#back').onclick = () => go('home');
+  $view.querySelector('#testday').onclick = () => { testCfg.days = [day.n]; go('test'); };
+  $view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { studyMode = b.dataset.mode; store.set('mode', studyMode); renderStudy(); });
+  if (studyMode === 'list') bindList(day); else bindCard(day);
+}
+function listControls(day) {
+  return `<div class="row">
+    <span class="muted" style="font-size:.85rem">가리기</span>
+    <span class="seg" role="group" aria-label="가리기">
+      <button data-hide="none" aria-pressed="${hideCol === 'none'}">없음</button>
+      <button data-hide="m" aria-pressed="${hideCol === 'm'}">뜻 가리기</button>
+      <button data-hide="w" aria-pressed="${hideCol === 'w'}">영어 가리기</button>
+    </span>
+    <span class="muted" style="font-size:.8rem">가려진 칸을 누르면 보입니다</span>
+    <button class="btn" id="onlystar" aria-pressed="${onlyStars}" style="margin-left:auto">${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
+  </div>`;
+}
+function listHTML(day) {
+  let h = `<div class="list">`;
+  if (onlyStars && !day.words.some(x => stars.has(x.key))) h += `<div class="empty" style="border:0">이 Day에는 별표한 단어가 없습니다. 단어 오른쪽의 ☆를 눌러 별표하세요.</div>`;
+  day.words.forEach((x, i) => {
+    const st = stars.has(x.key);
+    if (onlyStars && !st) return;
+    const k = known.has(x.key), note = notes[x.key] || '', editing = editingKey === x.key;
+    const hasEx = !!(x.ex || note), open = hasEx && openEx.has(x.key);
+    const label = x.ex && note ? '설명·메모' : x.ex ? '설명' : '메모';
+    h += `<div class="item${k ? ' known' : ''}${hasEx ? ' has-ex' : ''}"${hasEx ? ` data-ex="${i}" tabindex="0" role="button" aria-expanded="${open}" title="눌러서 ${label} ${open ? '접기' : '펼치기'}"` : ''}>
+      <span class="i">${pad(i + 1)}</span>
+      <span class="w${hideCol === 'w' ? ' hide' : ''}">${esc(x.w)}${hasEx ? `<span class="caret" aria-hidden="true">${open ? '▾' : '▸'} ${label}</span>` : ''}</span>
+      <span class="m${hideCol === 'm' ? ' hide' : ''}">${meaningHTML(x)}</span>
+      <span class="icons">
+        <button class="ico" data-say="${i}" aria-label="발음 듣기" title="발음 듣기">▶</button>
+        <button class="ico note${note ? ' has' : ''}" data-note="${i}" aria-label="${note ? '메모 고치기' : '메모 추가'}" title="${note ? '메모 고치기' : '메모 추가'}">✎</button>
+        <button class="ico star${st ? ' on' : ''}" data-star="${i}" aria-pressed="${st}" aria-label="별표" title="${st ? '별표 해제' : '별표'}">${st ? '★' : '☆'}</button>      </span>
+      ${open && x.ex ? `<div class="ex">${esc(x.ex)}</div>` : ''}
+      ${open && note && !editing ? `<div class="ex mine"><span class="tag">내 메모</span>\n${esc(note)}</div>` : ''}
+      ${editing ? `<form class="editor" data-editor="${i}">
+        <label class="tag" for="note-${x.key.replace(':', '-')}">내 메모 · ${esc(oneLine(x.w))}</label>
+        <textarea id="note-${x.key.replace(':', '-')}" rows="3" placeholder="예문, 헷갈리는 점, 외우는 요령 등을 적어 두세요">${esc(note)}</textarea>
+        <div class="row"><button class="btn primary">저장</button><button type="button" class="btn" data-cancel>취소</button>${note ? '<button type="button" class="btn" data-del>메모 삭제</button>' : ''}<span class="muted" style="font-size:.78rem">Ctrl+Enter 저장 · Esc 취소</span></div>
+      </form>` : ''}
+    </div>`;
+  });
+  return h + `</div>`;
+}
+function bindList(day) {
+  $view.querySelectorAll('[data-hide]').forEach(b => b.onclick = () => { hideCol = b.dataset.hide; renderStudy(); });
+  $view.querySelectorAll('.hide').forEach(el => el.onclick = e => { e.stopPropagation(); el.classList.remove('hide'); el.onclick = null; });
+  $view.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(day.words[+b.dataset.say].w));
+  $view.querySelectorAll('[data-ex]').forEach(el => {
+    const toggle = e => {
+      // buttons, covered (hidden) cells and the note editor keep their own click behaviour
+      if (e.target.closest('button, .hide, .editor')) return;
+      const key = day.words[+el.dataset.ex].key;
+      openEx.has(key) ? openEx.delete(key) : openEx.add(key);
+      const y = el.getBoundingClientRect().top;
+      renderStudy();
+      const again = $view.querySelector(`[data-ex="${el.dataset.ex}"]`);
+      if (again) { window.scrollBy(0, again.getBoundingClientRect().top - y); again.focus({ preventScroll: true }); }
+    };
+    el.onclick = toggle;
+    el.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); toggle(e); } };
+  });
+  $view.querySelector('#onlystar').onclick = () => { onlyStars = !onlyStars; renderStudy(); };
+  $view.querySelectorAll('[data-star]').forEach(b => b.onclick = () => {
+    const i = b.dataset.star;
+    toggleStar(day.words[+i].key);
+    renderStudy();
+    const again = $view.querySelector(`[data-star="${i}"]`);
+    if (again) again.focus({ preventScroll: true });
+  });
+  $view.querySelectorAll('[data-note]').forEach(b => b.onclick = () => {
+    const key = day.words[+b.dataset.note].key;
+    editingKey = editingKey === key ? null : key;
+    renderStudy();
+    const ta = editingKey && $view.querySelector('.editor textarea');
+    if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+  });
+  const form = $view.querySelector('.editor');
+  if (form) {
+    const x = day.words[+form.dataset.editor], ta = form.querySelector('textarea');
+    const close = () => { editingKey = null; renderStudy(); const b = $view.querySelector(`[data-note="${form.dataset.editor}"]`); if (b) b.focus(); };
+    const save = async () => { const t = ta.value; editingKey = null; await saveNote(x.key, t); if (t.trim()) openEx.add(x.key); renderStudy(); };
+    form.onsubmit = e => { e.preventDefault(); save(); };
+    form.querySelector('[data-cancel]').onclick = close;
+    const del = form.querySelector('[data-del]');
+    if (del) del.onclick = async () => { editingKey = null; await saveNote(x.key, ''); renderStudy(); };
+    ta.onkeydown = e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); }
+      else if (e.key === 'Escape') { e.preventDefault(); close(); }
+    };
+  }
+}
+function cardDeck(day) {
+  if (!cardOrder) cardOrder = day.words.map((_, i) => i);
+  return cardOnlyUnknown ? cardOrder.filter(i => !known.has(day.words[i].key)) : cardOrder;
+}
+function cardHTML(day) {
+  const deck = cardDeck(day);
+  if (!deck.length) return `<div class="empty">이 Day의 단어를 시험에서 모두 맞혔습니다. ‘아직 못 맞힌 것만’을 끄면 전체 카드를 다시 볼 수 있어요.<div class="row" style="justify-content:center;margin-top:12px"><button class="btn" id="allcards">전체 카드 보기</button></div></div>`;
+  cardIdx = Math.min(cardIdx, deck.length - 1);
+  const x = day.words[deck[cardIdx]];
+  return `<div class="row" style="margin-bottom:10px">
+      <button class="btn" id="shuf">섞기</button>
+      <button class="btn" id="only" aria-pressed="${cardOnlyUnknown}">${cardOnlyUnknown ? '✓ ' : ''}아직 못 맞힌 것만</button>
+      <span class="muted mono" style="margin-left:auto">${cardIdx + 1} / ${deck.length}</span>
+    </div>
+    <div class="card${known.has(x.key) ? ' known' : ''}" id="card" tabindex="0" role="button" aria-label="카드 뒤집기">
+      <div class="w">${esc(x.w)}</div>
+      ${cardFlip ? `<div class="m">${meaningHTML(x)}</div>${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space</div>`}
+    </div>
+    <div class="cardnav">
+      <button class="btn" id="prev">← 이전</button>
+      <div class="row">
+        <button class="btn" id="say">▶ 발음</button>
+      </div>
+      <button class="btn" id="next">다음 →</button>
+    </div>`;
+}
+function bindCard(day) {
+  const all = $view.querySelector('#allcards');
+  if (all) { all.onclick = () => { cardOnlyUnknown = false; renderStudy(); }; return; }
+  const deck = cardDeck(day), x = day.words[deck[cardIdx]];
+  const flip = () => { cardFlip = !cardFlip; renderStudy(); };
+  const move = d => { cardIdx = (cardIdx + d + deck.length) % deck.length; cardFlip = false; renderStudy(); };
+  $view.querySelector('#card').onclick = flip;
+  $view.querySelector('#prev').onclick = () => move(-1);
+  $view.querySelector('#next').onclick = () => move(1);
+  $view.querySelector('#say').onclick = () => speak(x.w);
+  $view.querySelector('#shuf').onclick = () => { cardOrder = shuffle(day.words.map((_, i) => i)); cardIdx = 0; cardFlip = false; renderStudy(); };
+  $view.querySelector('#only').onclick = () => { cardOnlyUnknown = !cardOnlyUnknown; cardIdx = 0; cardFlip = false; renderStudy(); };
+}
+document.addEventListener('keydown', e => {
+  if (tab !== 'study' || studyMode !== 'card' || /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  const id = { ' ': 'card', ArrowLeft: 'prev', ArrowRight: 'next' }[e.key];
+  const el = id && $view.querySelector('#' + id);
+  if (el) { e.preventDefault(); el.click(); }
+});
+
+// ---------- test setup ----------
+const TYPES = { en2ko: '영어 → 뜻 고르기', ko2en: '뜻 → 영어 고르기', write: '영어 보고 뜻 쓰기', spell: '뜻 보고 철자 쓰기' };
+const TYPED = t => t === 'spell' || t === 'write';
+let testCfg = { days: [1], type: 'en2ko', count: 20 };
+function renderTestSetup() {
+  const pool = DAYS.filter(d => testCfg.days.includes(d.n)).reduce((s, d) => s + d.words.length, 0);
+  let html = `<div class="panel">
+    <div class="field"><h3>범위 (Day)</h3>
+      <div class="row" style="margin-bottom:8px"><button class="btn" id="dall">전체 선택</button><button class="btn" id="dnone">선택 해제</button></div>
+      <div class="chips">${DAYS.map(d => `<button class="chip" data-d="${d.n}" aria-pressed="${testCfg.days.includes(d.n)}" title="${esc(d.name)}">${pad(d.n)}</button>`).join('')}</div>
+    </div>
+    <div class="field"><h3>문제 유형</h3><div class="seg" role="group">${Object.entries(TYPES).map(([k, v]) => `<button data-type="${k}" aria-pressed="${testCfg.type === k}">${v}</button>`).join('')}</div></div>
+    <div class="field"><h3>문항 수</h3><div class="seg" role="group">${[10, 20, 30, 50, 0].map(c => `<button data-count="${c}" aria-pressed="${testCfg.count === c}">${c || '전체'}</button>`).join('')}</div></div>
+    <div class="row"><button class="btn primary" id="start" ${pool ? '' : 'disabled'}>시험 시작</button><span class="muted">선택 범위 ${pool}단어 중 ${testCfg.count ? Math.min(testCfg.count, pool) : pool}문항</span></div>
+  </div>`;
+  $view.innerHTML = html;
+  $view.querySelectorAll('[data-d]').forEach(b => b.onclick = () => {
+    const n = +b.dataset.d; testCfg.days = testCfg.days.includes(n) ? testCfg.days.filter(x => x !== n) : [...testCfg.days, n].sort((a, b) => a - b); renderTestSetup();
+  });
+  $view.querySelector('#dall').onclick = () => { testCfg.days = DAYS.map(d => d.n); renderTestSetup(); };
+  $view.querySelector('#dnone').onclick = () => { testCfg.days = []; renderTestSetup(); };
+  $view.querySelectorAll('[data-type]').forEach(b => b.onclick = () => { testCfg.type = b.dataset.type; renderTestSetup(); });
+  $view.querySelectorAll('[data-count]').forEach(b => b.onclick = () => { testCfg.count = +b.dataset.count; renderTestSetup(); });
+  $view.querySelector('#start').onclick = () => {
+    const words = DAYS.filter(d => testCfg.days.includes(d.n)).flatMap(d => d.words);
+    startQuiz(words, testCfg.type, testCfg.count, testCfg.days.length === 1 ? testCfg.days[0] : null);
+  };
+}
+
+// ---------- quiz ----------
+let quiz = null;
+function startQuiz(words, type, count, dayN) {
+  const qs = shuffle(words).slice(0, count || words.length).map(x => {
+    let opts = null;
+    if (!TYPED(type)) {
+      // distractors from the same Day first (same part of speech), then anywhere
+      const sameDay = shuffle(DAYS[x.d].words.filter(y => y.key !== x.key && y.m !== x.m && y.w !== x.w));
+      const extra = shuffle(ALL.filter(y => y.d !== x.d && y.m !== x.m));
+      opts = shuffle([x, ...sameDay.concat(extra).slice(0, 3)]);
+    }
+    return { x, opts, answer: null, ok: null };
+  });
+  quiz = { qs, type, i: 0, dayN };
+  go('quiz');
+}
+function renderQuiz() {
+  if (quiz.i >= quiz.qs.length) return renderResult();
+  const q = quiz.qs[quiz.i], t = quiz.type, done = q.answer !== null;
+  let h = `<div class="q">
+    <div class="qtop"><span>${TYPES[t]} · DAY ${pad(DAYS[q.x.d].n)}</span><span class="mono">${quiz.i + 1} / ${quiz.qs.length}</span></div>
+    <div class="progress"><i style="width:${quiz.i / quiz.qs.length * 100}%"></i></div>
+    <div class="prompt ${t === 'en2ko' || t === 'write' ? 'en' : ''}">${t === 'en2ko' || t === 'write' ? esc(q.x.w) : meaningHTML(q.x)}</div>`;
+  if (t === 'write') {
+    // one box per part of speech the word's meanings cover; each box is graded on its own
+    const groups = q.groups || (q.groups = posGroups(q.x));
+    h += `<form class="posform" id="sf">${groups.length > 1 ? `<p class="muted" style="margin:0 0 4px;font-size:.85rem">이 단어는 품사 ${groups.length}개로 쓰입니다. 품사마다 뜻을 하나 이상 쓰세요.</p>` : ''}
+      ${groups.map(([p, parts], j) => {
+        const st = done ? (q.boxOk[j] ? 'ok' : 'no') : '';
+        return `<div class="posrow ${st}">
+          <label for="pos-${j}" class="poslabel">${ptag(posCode(p, q.x))} ${p}</label>
+          <input id="pos-${j}" data-j="${j}" autocomplete="off" spellcheck="false" placeholder="${p} 뜻 (여러 개면 쉼표로)" ${done ? 'disabled' : ''} value="${done ? esc(q.answer[j] || '') : ''}">
+          ${done ? `<span class="posres">${q.boxOk[j] ? '✓' : '✗'}</span><div class="posans">${p} 뜻: ${esc(parts.join(', '))}</div>` : ''}
+        </div>`;
+      }).join('')}
+      ${done ? '' : '<div class="row"><button class="btn primary">확인</button><button type="button" class="btn" id="giveup">모르겠어요</button></div>'}
+    </form>`;
+  } else if (TYPED(t)) {
+    h += `<form class="spell" id="sf"><input id="spell-in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="영어로 입력" ${done ? 'disabled' : ''} value="${done ? esc(q.answer) : ''}"><button class="btn primary" ${done ? 'disabled' : ''}>확인</button>${done ? '' : '<button type="button" class="btn" id="giveup">모르겠어요</button>'}</form>`;
+  } else {
+    h += `<div class="opts">${q.opts.map((o, j) => {
+      let cls = '';
+      if (done) { if (o.key === q.x.key) cls = ' right'; else if (q.answer === j) cls = ' wrong'; }
+      return `<button class="opt${t === 'ko2en' ? ' en' : ''}${cls}" data-j="${j}" ${done ? 'disabled' : ''}><span class="bub">${'ABCD'[j]}</span><span class="txt">${t === 'ko2en' ? esc(oneLine(o.w)) : meaningHTML(o, true)}</span></button>`;
+    }).join('')}</div>`;
+  }
+  if (done) {
+    const partial = t === 'write' && !q.ok && q.boxOk.some(Boolean);
+    h += `<div class="feedback ${q.ok ? 'ok' : 'no'}">${q.ok ? (q.accepted ? '정답으로 인정했습니다.' : '정답입니다.') : partial ? `품사 ${q.boxOk.length}개 중 ${q.boxOk.filter(Boolean).length}개만 맞았습니다.` : '틀렸습니다.'} <b>${esc(oneLine(q.x.w))}</b> — ${meaningHTML(q.x, true)}
+      ${!q.ok && t === 'write' && q.answer.some(Boolean) ? `<div style="margin-top:8px" class="row"><span>입력한 뜻이 모두 맞는 뜻이라면</span><button class="btn" id="accept">정답으로 인정</button></div>` : ''}</div>
+      <div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn" id="say">▶ 발음</button><button class="btn primary" id="nextq">${quiz.i + 1 < quiz.qs.length ? '다음 문제 →' : '결과 보기'}</button></div>`;
+  } else {
+    h += `<div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="quit">그만 보기</button></div>`;
+  }
+  $view.innerHTML = h + `</div>`;
+  const mark = (ans, ok) => {
+    q.answer = ans; q.ok = ok;
+    if (ok) known.add(q.x.key);
+    else { known.delete(q.x.key); wrong[q.x.key] = (wrong[q.x.key] || 0) + 1; saveWrong(); }
+    saveKnown(); renderQuiz();
+  };
+  if (!done) {
+    if (t === 'write') {
+      const boxes = [...$view.querySelectorAll('#sf input')];
+      boxes[0].focus();
+      const submit = give => {
+        const vals = boxes.map(b => give ? '' : b.value.trim());
+        q.boxOk = q.groups.map(([, parts], j) => !!vals[j] && meaningRight(vals[j], parts));
+        mark(vals, q.boxOk.every(Boolean));
+      };
+      // Enter moves to the next empty box; on the last box (or when all are filled) it grades
+      boxes.forEach((b, j) => b.onkeydown = e => {
+        if (e.key !== 'Enter') return;
+        const next = boxes.slice(j + 1).find(x => !x.value.trim());
+        if (next) { e.preventDefault(); next.focus(); }
+      });
+      $view.querySelector('#sf').onsubmit = e => { e.preventDefault(); if (boxes.some(b => b.value.trim())) submit(false); else boxes[0].focus(); };
+      $view.querySelector('#giveup').onclick = () => submit(true);
+    } else if (TYPED(t)) {
+      const inp = $view.querySelector('#spell-in'); inp.focus();
+      $view.querySelector('#sf').onsubmit = e => { e.preventDefault(); if (inp.value.trim()) mark(inp.value.trim(), isRight(inp.value, q.x.w)); };
+      $view.querySelector('#giveup').onclick = () => mark('', false);
+    } else {
+      $view.querySelectorAll('.opt').forEach(b => b.onclick = () => { const j = +b.dataset.j; mark(j, q.opts[j].key === q.x.key); });
+    }
+    $view.querySelector('#quit').onclick = () => { quiz.qs = quiz.qs.slice(0, quiz.i); renderResult(); };
+  } else {
+    $view.querySelector('#say').onclick = () => speak(q.x.w);
+    const acc = $view.querySelector('#accept');
+    if (acc) acc.onclick = () => {
+      // undo the miss recorded a moment ago and count it as correct
+      q.ok = true; q.accepted = true; known.add(q.x.key); saveKnown();
+      if (wrong[q.x.key] > 1) wrong[q.x.key]--; else delete wrong[q.x.key];
+      saveWrong(); renderQuiz();
+    };
+    const nx = $view.querySelector('#nextq'); nx.focus();
+    nx.onclick = () => { quiz.i++; renderQuiz(); };
+  }
+}
+document.addEventListener('keydown', e => {
+  if (tab !== 'quiz' || !quiz || /INPUT/.test(e.target.tagName)) return;
+  const k = e.key.toUpperCase(), j = 'ABCD'.indexOf(k) >= 0 ? 'ABCD'.indexOf(k) : '1234'.indexOf(k);
+  const b = j >= 0 && $view.querySelector(`.opt[data-j="${j}"]:not([disabled])`);
+  if (b) { e.preventDefault(); b.click(); }
+});
+function renderResult() {
+  const qs = quiz.qs, right = qs.filter(q => q.ok).length, pct = qs.length ? Math.round(right / qs.length * 100) : 0;
+  if (quiz.dayN && qs.length && !quiz.saved) { best[quiz.dayN] = Math.max(best[quiz.dayN] || 0, pct); store.set('best', best); quiz.saved = true; }
+  const misses = qs.filter(q => !q.ok);
+  let h = `<div class="panel">
+    <div class="score"><b>${pct}점</b><span class="muted">${qs.length}문항 중 ${right}개 정답${quiz.dayN ? ` · DAY ${pad(quiz.dayN)} 최고 ${best[quiz.dayN]}점` : ''}</span></div>
+    <div class="row" style="margin-bottom:16px">
+      ${misses.length ? '<button class="btn primary" id="retry">틀린 단어만 다시</button>' : ''}
+      <button class="btn" id="again">같은 범위 새 시험</button>
+      <button class="btn" id="home">Day 목록</button>
+    </div>`;
+  if (misses.length) {
+    h += `<h3>틀린 단어 ${misses.length}개</h3><div style="overflow-x:auto"><table class="res"><tbody>${misses.map(q =>
+      `<tr><td class="w">${esc(oneLine(q.x.w))}</td><td>${meaningHTML(q.x)}<div class="tag">DAY ${pad(DAYS[q.x.d].n)}${quiz.type === 'write' && q.answer && q.answer.some(Boolean) ? ` · 입력: ${esc(q.groups.map(([p], j) => `${p} ${q.answer[j] || '—'}${q.boxOk[j] ? ' ✓' : ' ✗'}`).join(' / '))}` : quiz.type === 'spell' && q.answer ? ` · 입력: ${esc(q.answer)}` : ''}</div></td></tr>`).join('')}</tbody></table></div>`;
+  } else if (qs.length) h += `<p class="muted">모두 맞혔습니다.</p>`;
+  $view.innerHTML = h + `</div>`;
+  const r = $view.querySelector('#retry');
+  if (r) r.onclick = () => startQuiz(misses.map(q => q.x), quiz.type, 0, null);
+  $view.querySelector('#again').onclick = () => go('test');
+  $view.querySelector('#home').onclick = () => go('home');
+}
+
+// ---------- wrong-answer notebook ----------
+function renderWrong() {
+  const items = Object.entries(wrong).map(([k, c]) => ({ x: ALL.find(y => y.key === k), c })).filter(o => o.x).sort((a, b) => b.c - a.c || a.x.d - b.x.d);
+  if (!items.length) { $view.innerHTML = `<div class="empty">시험에서 틀린 단어가 여기에 모입니다. 아직 틀린 단어가 없어요.<div class="row" style="justify-content:center;margin-top:12px"><button class="btn primary" id="gotest">시험 보러 가기</button></div></div>`; $view.querySelector('#gotest').onclick = () => go('test'); return; }
+  let h = `<div class="studyhead"><h2>오답노트 <span class="muted mono" style="font-size:.9rem">${items.length}단어</span></h2>
+    <div class="row"><button class="btn primary" id="wq">오답 시험 (객관식)</button><button class="btn" id="ww">오답 시험 (뜻 쓰기)</button><button class="btn" id="ws">오답 시험 (철자)</button><button class="btn" id="wclear">비우기</button></div></div>
+    <div class="list">${items.map((o, i) => `<div class="item"><span class="i">${o.c}회</span><span class="w">${esc(o.x.w)}</span><span class="m">${meaningHTML(o.x)}<div class="tag">DAY ${pad(DAYS[o.x.d].n)}</div></span>
+      <span class="icons"><button class="ico" data-say="${i}" aria-label="발음 듣기">▶</button><button class="ico" data-rm="${o.x.key}" aria-label="오답노트에서 빼기" title="오답노트에서 빼기">✕</button></span></div>`).join('')}</div>`;
+  $view.innerHTML = h;
+  $view.querySelector('#wq').onclick = () => startQuiz(items.map(o => o.x), 'en2ko', 0, null);
+  $view.querySelector('#ww').onclick = () => startQuiz(items.map(o => o.x), 'write', 0, null);
+  $view.querySelector('#ws').onclick = () => startQuiz(items.map(o => o.x), 'spell', 0, null);
+  const clr = $view.querySelector('#wclear');
+  clr.onclick = () => {
+    if (clr.dataset.armed) { wrong = {}; saveWrong(); renderWrong(); }
+    else { clr.dataset.armed = 1; clr.textContent = '한 번 더 누르면 비웁니다'; }
+  };
+  $view.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(items[+b.dataset.say].x.w));
+  $view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { delete wrong[b.dataset.rm]; saveWrong(); renderWrong(); });
+}
+
+// ---------- rubber band at the ends of the word list ----------
+// Scrolling past the top or bottom stretches the list a little (with growing resistance);
+// letting go springs it back with a slight overshoot. Off for reduced-motion viewers.
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const MAX = 80;
+  const resist = p => Math.sign(p) * MAX * (1 - Math.exp(-Math.abs(p) / (MAX * 1.6)));
+  let pull = 0, el = null, timer = 0, touchY = null;
+  const atBottom = () => Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 1;
+  const atTop = () => scrollY <= 0;
+  const show = () => { el.style.transition = 'none'; el.style.transform = `translateY(${-resist(pull)}px)`; };
+  const release = () => {
+    if (!el || !pull) return;
+    el.style.transition = 'transform .5s cubic-bezier(.2, 1.45, .35, 1)';
+    el.style.transform = '';
+    pull = 0;
+  };
+  function stretch(dy) {
+    if (reduce.matches || (tab !== 'study' && tab !== 'wrong')) return false;
+    if (pull) { const np = pull + dy; pull = Math.sign(np) === Math.sign(pull) ? np : 0; show(); return true; }
+    if ((dy > 0 && atBottom()) || (dy < 0 && atTop())) {
+      el = $view.querySelector('.list');
+      if (!el) return false;
+      pull = dy; show(); return true;
+    }
+    return false;
+  }
+  addEventListener('wheel', e => {
+    if (stretch(e.deltaY * 0.6)) { clearTimeout(timer); timer = setTimeout(release, 120); }
+  }, { passive: true });
+  addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchmove', e => {
+    if (touchY == null) return;
+    const y = e.touches[0].clientY, dy = touchY - y;
+    touchY = y;
+    stretch(dy);
+  }, { passive: true });
+  addEventListener('touchend', () => { touchY = null; release(); }, { passive: true });
+  addEventListener('touchcancel', () => { touchY = null; release(); }, { passive: true });
+})();
+
+go('home');
+</script>
+
+</body>
+</html>
