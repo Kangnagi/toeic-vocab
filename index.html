@@ -238,7 +238,7 @@ const store = {
   get(k, def) { try { const v = localStorage.getItem('toeic30:' + k); return v ? JSON.parse(v) : def; } catch (e) { return def; } },
   set(k, v) { try { localStorage.setItem('toeic30:' + k, JSON.stringify(v)); } catch (e) {} }
 };
-// "known" = most recent test answer for the word was correct (manual marks under the old 'known' key are ignored)
+// "known" = the word was last answered correctly in a writing test and not missed since (manual marks under the old 'known' key are ignored)
 let known = new Set(store.get('passed', []));
 let wrong = store.get('wrong', {});      // key -> miss count
 let best = store.get('best', {});        // day n -> best %
@@ -523,7 +523,7 @@ function renderStudy(n) {
       <button class="btn primary" id="testday">이 Day 시험 보기</button>
     </div>
   </div>
-  <div class="studyhead"><h2><span class="mono" style="color:var(--accent)">DAY ${pad(day.n)}</span> ${esc(day.name)}</h2><span class="muted"><span class="mono">외운 단어 ${kn}/${day.words.length}</span><span class="hint-long"> · 시험에서 맞힌 단어는 <span style="color:var(--known);font-weight:700">연두색</span>으로 표시되고, 틀리면 원래 색으로 돌아갑니다</span></span></div>`;
+  <div class="studyhead"><h2><span class="mono" style="color:var(--accent)">DAY ${pad(day.n)}</span> ${esc(day.name)}</h2><span class="muted"><span class="mono">외운 단어 ${kn}/${day.words.length}</span><span class="hint-long"> · 뜻 쓰기·철자 쓰기 시험에서 맞힌 단어는 <span style="color:var(--known);font-weight:700">연두색</span>으로 표시되고, 어떤 시험이든 틀리면 원래 색으로 돌아갑니다</span></span></div>`;
   html += (studyMode === 'list' ? listControls(day) : '') + `</div>`;
   html += studyMode === 'list' ? listHTML(day) : cardHTML(day);
   $view.innerHTML = html;
@@ -753,8 +753,13 @@ function renderQuiz() {
   $view.innerHTML = h + `</div>`;
   const mark = (ans, ok) => {
     q.answer = ans; q.ok = ok;
-    if (ok) known.add(q.x.key);
-    else { known.delete(q.x.key); wrong[q.x.key] = (wrong[q.x.key] || 0) + 1; saveWrong(); }
+    // only the writing tests (뜻 쓰기, 철자 쓰기) mark a word known or send a miss to the notebook;
+    // a miss in any test un-marks it
+    if (ok) { if (TYPED(t)) known.add(q.x.key); }
+    else {
+      known.delete(q.x.key);
+      if (TYPED(t)) { wrong[q.x.key] = (wrong[q.x.key] || 0) + 1; saveWrong(); }
+    }
     saveKnown(); renderQuiz();
   };
   if (!done) {
@@ -826,7 +831,7 @@ function renderResult() {
 // ---------- wrong-answer notebook ----------
 function renderWrong() {
   const items = Object.entries(wrong).map(([k, c]) => ({ x: ALL.find(y => y.key === k), c })).filter(o => o.x).sort((a, b) => b.c - a.c || a.x.d - b.x.d);
-  if (!items.length) { $view.innerHTML = `<div class="empty">시험에서 틀린 단어가 여기에 모입니다. 아직 틀린 단어가 없어요.<div class="row" style="justify-content:center;margin-top:12px"><button class="btn primary" id="gotest">시험 보러 가기</button></div></div>`; $view.querySelector('#gotest').onclick = () => go('test'); return; }
+  if (!items.length) { $view.innerHTML = `<div class="empty">뜻 쓰기·철자 쓰기 시험에서 틀린 단어가 여기에 모입니다. 아직 틀린 단어가 없어요.<div class="row" style="justify-content:center;margin-top:12px"><button class="btn primary" id="gotest">시험 보러 가기</button></div></div>`; $view.querySelector('#gotest').onclick = () => go('test'); return; }
   let h = `<div class="studyhead"><h2>오답노트 <span class="muted mono" style="font-size:.9rem">${items.length}단어</span></h2>
     <div class="row"><button class="btn primary" id="wq">오답 시험 (객관식)</button><button class="btn" id="ww">오답 시험 (뜻 쓰기)</button><button class="btn" id="ws">오답 시험 (철자)</button><button class="btn" id="wclear">비우기</button></div></div>
     <div class="list">${items.map((o, i) => `<div class="item"><span class="i">${o.c}회</span><span class="w">${esc(o.x.w)}</span><span class="m">${meaningHTML(o.x)}<div class="tag">DAY ${pad(DAYS[o.x.d].n)}</div></span>
