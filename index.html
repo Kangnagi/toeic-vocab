@@ -64,6 +64,14 @@ button{font-family:inherit}
 .day{all:unset;box-sizing:border-box;cursor:pointer;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center}
 .day:hover{border-color:var(--accent)}
 .day:focus-visible{outline:2px solid var(--accent)}
+.sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.setcard{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
+.setcard:hover{border-color:var(--accent)}
+.setcard:focus-visible{outline:2px solid var(--accent)}
+.setno{font-weight:700;color:var(--accent)}
+.setrange{font-size:.78rem}
+.setwords{font-family:var(--f-word);font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.setmeta{display:flex;justify-content:space-between;gap:8px;font-size:.78rem}
 .day .num{grid-row:span 2;font-family:var(--f-mono);font-size:1.2rem;color:var(--accent);width:2.2ch}
 .day .t{font-weight:500;font-size:.92rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .day .meta{font-size:.76rem;color:var(--muted);display:flex;gap:8px;align-items:center}
@@ -82,12 +90,15 @@ button{font-family:inherit}
 .item .i{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
 .item .w{font-family:var(--f-word);font-size:1.12rem;font-weight:500;white-space:pre-line;min-width:0;overflow-wrap:anywhere}
 .item .m{min-width:0;overflow-wrap:anywhere}
+.item [data-cell]{cursor:pointer;border-radius:4px;transition:background .12s}
+.item [data-cell]:not(.hide):hover{background:var(--accent-soft)}
+.item [data-cell]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .item.known .w,.card.known .w{color:var(--known)}
 .hide{background:var(--line);color:transparent!important;border-radius:4px;cursor:pointer;user-select:none}
 .item.has-ex{cursor:pointer}
 .item.has-ex:hover{background:var(--bg)}
 .item.has-ex:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.caret{display:inline-block;margin-left:8px;font-family:var(--f-body);font-size:.72rem;font-weight:500;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px;vertical-align:middle;white-space:nowrap}
+.caret{border:0;cursor:pointer;line-height:1.5;display:inline-block;margin-left:8px;font-family:var(--f-body);font-size:.72rem;font-weight:500;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 8px;vertical-align:middle;white-space:nowrap}
 .hide .caret{visibility:hidden}
 .ex{grid-column:2 / -1;font-size:.84rem;color:var(--muted);white-space:pre-line;background:var(--bg);border-radius:8px;padding:8px 10px}
 .icons{display:flex;gap:4px}
@@ -507,7 +518,10 @@ function watchPin(el) {
 
 // ---------- study ----------
 const openEx = new Set();
-let studyMode = store.get('mode', 'list'), hideCol = 'none', cardIdx = 0, cardFlip = false, cardOrder = null, cardOnlyUnknown = false;
+// Hidden English words and meanings, by word key. Clicking a word or a meaning hides or shows
+// just that one; the two buttons above the list hide or show a whole column of the Day.
+const hidW = new Set(), hidM = new Set();
+let studyMode = store.get('mode', 'list'), cardIdx = 0, cardFlip = false, cardOrder = null, cardOnlyUnknown = false;
 function renderStudy(n) {
   if (n != null && n !== renderStudy.n) { cardIdx = 0; cardFlip = false; cardOrder = null; }
   if (n != null) renderStudy.n = n;
@@ -534,14 +548,13 @@ function renderStudy(n) {
   if (studyMode === 'list') bindList(day); else bindCard(day);
 }
 function listControls(day) {
+  const allW = day.words.every(x => hidW.has(x.key)), allM = day.words.every(x => hidM.has(x.key));
   return `<div class="row">
-    <span class="muted" style="font-size:.85rem">가리기</span>
-    <span class="seg" role="group" aria-label="가리기">
-      <button data-hide="none" aria-pressed="${hideCol === 'none'}">없음</button>
-      <button data-hide="m" aria-pressed="${hideCol === 'm'}">뜻 가리기</button>
-      <button data-hide="w" aria-pressed="${hideCol === 'w'}">영어 가리기</button>
+    <span class="seg" role="group" aria-label="모두 가리기">
+      <button data-hide="w" aria-pressed="${allW}">${allW ? '영어 모두 보이기' : '영어 모두 가리기'}</button>
+      <button data-hide="m" aria-pressed="${allM}">${allM ? '뜻 모두 보이기' : '뜻 모두 가리기'}</button>
     </span>
-    <span class="muted" style="font-size:.8rem">가려진 칸을 누르면 보입니다</span>
+    <span class="muted" style="font-size:.8rem">영어나 뜻을 누르면 하나씩 가려지고, 다시 누르면 보입니다</span>
     <button class="btn" id="onlystar" aria-pressed="${onlyStars}" style="margin-left:auto">${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
   </div>`;
 }
@@ -554,10 +567,11 @@ function listHTML(day) {
     const k = known.has(x.key), note = notes[x.key] || '', editing = editingKey === x.key;
     const hasEx = !!(x.ex || note), open = hasEx && openEx.has(x.key);
     const label = x.ex && note ? '설명·메모' : x.ex ? '설명' : '메모';
-    h += `<div class="item${k ? ' known' : ''}${hasEx ? ' has-ex' : ''}"${hasEx ? ` data-ex="${i}" tabindex="0" role="button" aria-expanded="${open}" title="눌러서 ${label} ${open ? '접기' : '펼치기'}"` : ''}>
+    const hw = hidW.has(x.key), hm = hidM.has(x.key);
+    h += `<div class="item${k ? ' known' : ''}${hasEx ? ' has-ex' : ''}"${hasEx ? ` data-ex="${i}"` : ''}>
       <span class="i">${pad(i + 1)}</span>
-      <span class="w${hideCol === 'w' ? ' hide' : ''}">${esc(x.w)}${hasEx ? `<span class="caret" aria-hidden="true">${open ? '▾' : '▸'} ${label}</span>` : ''}</span>
-      <span class="m${hideCol === 'm' ? ' hide' : ''}">${meaningHTML(x)}</span>
+      <span class="w${hw ? ' hide' : ''}" data-cell="w" data-i="${i}" tabindex="0" role="button" aria-pressed="${hw}" title="${hw ? '눌러서 영어 보이기' : '눌러서 영어 가리기'}">${esc(x.w)}${hasEx ? `<button class="caret" data-exbtn="${i}" aria-expanded="${open}" title="${label} ${open ? '접기' : '펼치기'}">${open ? '▾' : '▸'} ${label}</button>` : ''}</span>
+      <span class="m${hm ? ' hide' : ''}" data-cell="m" data-i="${i}" tabindex="0" role="button" aria-pressed="${hm}" title="${hm ? '눌러서 뜻 보이기' : '눌러서 뜻 가리기'}">${meaningHTML(x)}</span>
       <span class="icons">
         <button class="ico" data-say="${i}" aria-label="발음 듣기" title="발음 듣기">▶</button>
         <button class="ico note${note ? ' has' : ''}" data-note="${i}" aria-label="${note ? '메모 고치기' : '메모 추가'}" title="${note ? '메모 고치기' : '메모 추가'}">✎</button>
@@ -574,22 +588,43 @@ function listHTML(day) {
   return h + `</div>`;
 }
 function bindList(day) {
-  $view.querySelectorAll('[data-hide]').forEach(b => b.onclick = () => { hideCol = b.dataset.hide; renderStudy(); });
-  $view.querySelectorAll('.hide').forEach(el => el.onclick = e => { e.stopPropagation(); el.classList.remove('hide'); el.onclick = null; });
-  $view.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(day.words[+b.dataset.say].w));
-  $view.querySelectorAll('[data-ex]').forEach(el => {
-    const toggle = e => {
-      // buttons, covered (hidden) cells and the note editor keep their own click behaviour
-      if (e.target.closest('button, .hide, .editor')) return;
-      const key = day.words[+el.dataset.ex].key;
-      openEx.has(key) ? openEx.delete(key) : openEx.add(key);
-      const y = el.getBoundingClientRect().top;
-      renderStudy();
-      const again = $view.querySelector(`[data-ex="${el.dataset.ex}"]`);
-      if (again) { window.scrollBy(0, again.getBoundingClientRect().top - y); again.focus({ preventScroll: true }); }
+  $view.querySelectorAll('[data-hide]').forEach(b => b.onclick = () => {
+    const set = b.dataset.hide === 'w' ? hidW : hidM;
+    const all = day.words.every(x => set.has(x.key));
+    day.words.forEach(x => all ? set.delete(x.key) : set.add(x.key));
+    renderStudy();
+  });
+  // one English word or meaning: hide or show it in place, without redrawing the list
+  $view.querySelectorAll('[data-cell]').forEach(el => {
+    const flip = () => {
+      const set = el.dataset.cell === 'w' ? hidW : hidM, key = day.words[+el.dataset.i].key;
+      const hidden = !set.has(key);
+      hidden ? set.add(key) : set.delete(key);
+      el.classList.toggle('hide', hidden);
+      el.setAttribute('aria-pressed', hidden);
+      el.title = `눌러서 ${el.dataset.cell === 'w' ? '영어' : '뜻'} ${hidden ? '보이기' : '가리기'}`;
+      // keep the column buttons' labels in step
+      const btn = $view.querySelector(`[data-hide="${el.dataset.cell}"]`), all = day.words.every(x => set.has(x.key));
+      btn.setAttribute('aria-pressed', all);
+      btn.textContent = `${el.dataset.cell === 'w' ? '영어' : '뜻'} 모두 ${all ? '보이기' : '가리기'}`;
     };
-    el.onclick = toggle;
-    el.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); toggle(e); } };
+    el.onclick = e => { if (!e.target.closest('.caret')) flip(); };
+    el.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); flip(); } };
+  });
+  $view.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(day.words[+b.dataset.say].w));
+  // explanations open from the ▸ 설명 chip, or a click on the box outside the word and meaning
+  const toggleEx = (i, row) => {
+    const key = day.words[+i].key;
+    openEx.has(key) ? openEx.delete(key) : openEx.add(key);
+    const y = row.getBoundingClientRect().top;
+    renderStudy();
+    const again = $view.querySelector(`[data-ex="${i}"]`);
+    if (again) { window.scrollBy(0, again.getBoundingClientRect().top - y); const c = again.querySelector('.caret'); if (c) c.focus({ preventScroll: true }); }
+  };
+  $view.querySelectorAll('[data-ex]').forEach(row => row.onclick = e => {
+    if (e.target.closest('.caret')) { e.preventDefault(); return toggleEx(row.dataset.ex, row); }
+    if (e.target.closest('button, [data-cell], .editor')) return;
+    toggleEx(row.dataset.ex, row);
   });
   $view.querySelector('#onlystar').onclick = () => { onlyStars = !onlyStars; renderStudy(); };
   $view.querySelectorAll('[data-star]').forEach(b => b.onclick = () => {
@@ -670,10 +705,22 @@ document.addEventListener('keydown', e => {
 // ---------- test setup ----------
 const TYPES = { en2ko: '영어 → 뜻 고르기', ko2en: '뜻 → 영어 고르기', write: '영어 보고 뜻 쓰기', spell: '뜻 보고 철자 쓰기' };
 const TYPED = t => t === 'spell' || t === 'write';
-let testCfg = { days: [1], type: 'en2ko', count: 20 };
+let testCfg = { days: [1], type: 'en2ko', count: 20, mode: 'free', mockDay: 1 };
+// 10-word mock exams: each Day split in order into sets of 10 (the last set takes the rest);
+// best score kept per Day, set and test type
+const SET_SIZE = 10;
+let setBest = store.get('setBest', {});
+const daySets = day => Array.from({ length: Math.ceil(day.words.length / SET_SIZE) }, (_, s) => day.words.slice(s * SET_SIZE, (s + 1) * SET_SIZE));
+const setKey = (n, s, t) => `${n}-${s}-${t}`;
+const typeSeg = () => `<div class="seg" role="group" aria-label="문제 유형">${Object.entries(TYPES).map(([k, v]) => `<button data-type="${k}" aria-pressed="${testCfg.type === k}">${v}</button>`).join('')}</div>`;
 function renderTestSetup() {
+  const modeSeg = `<div class="seg" role="group" aria-label="시험 방식" style="margin-bottom:12px">
+    <button data-tmode="free" aria-pressed="${testCfg.mode === 'free'}">자유 시험</button>
+    <button data-tmode="mock" aria-pressed="${testCfg.mode === 'mock'}">10단어 모의시험</button>
+  </div>`;
+  if (testCfg.mode === 'mock') return renderMockSetup(modeSeg);
   const pool = DAYS.filter(d => testCfg.days.includes(d.n)).reduce((s, d) => s + d.words.length, 0);
-  let html = `<div class="panel">
+  let html = modeSeg + `<div class="panel">
     <div class="field"><h3>범위 (Day)</h3>
       <div class="row" style="margin-bottom:8px"><button class="btn" id="dall">전체 선택</button><button class="btn" id="dnone">선택 해제</button></div>
       <div class="chips">${DAYS.map(d => `<button class="chip" data-d="${d.n}" aria-pressed="${testCfg.days.includes(d.n)}" title="${esc(d.name)}">${pad(d.n)}</button>`).join('')}</div>
@@ -683,6 +730,7 @@ function renderTestSetup() {
     <div class="row"><button class="btn primary" id="start" ${pool ? '' : 'disabled'}>시험 시작</button><span class="muted">선택 범위 ${pool}단어 중 ${testCfg.count ? Math.min(testCfg.count, pool) : pool}문항</span></div>
   </div>`;
   $view.innerHTML = html;
+  $view.querySelectorAll('[data-tmode]').forEach(b => b.onclick = () => { testCfg.mode = b.dataset.tmode; renderTestSetup(); });
   $view.querySelectorAll('[data-d]').forEach(b => b.onclick = () => {
     const n = +b.dataset.d; testCfg.days = testCfg.days.includes(n) ? testCfg.days.filter(x => x !== n) : [...testCfg.days, n].sort((a, b) => a - b); renderTestSetup();
   });
@@ -695,10 +743,39 @@ function renderTestSetup() {
     startQuiz(words, testCfg.type, testCfg.count, testCfg.days.length === 1 ? testCfg.days[0] : null);
   };
 }
+function startSet(n, s) {
+  const day = DAYS.find(d => d.n === n);
+  startQuiz(daySets(day)[s], testCfg.type, 0, null, { n, s, total: daySets(day).length });
+}
+function renderMockSetup(modeSeg) {
+  const day = DAYS.find(d => d.n === testCfg.mockDay), sets = daySets(day);
+  $view.innerHTML = modeSeg + `<div class="panel">
+    <div class="field"><h3>Day</h3>
+      <div class="chips">${DAYS.map(d => `<button class="chip" data-md="${d.n}" aria-pressed="${d.n === day.n}" title="${esc(d.name)}">${pad(d.n)}</button>`).join('')}</div>
+    </div>
+    <div class="field"><h3>문제 유형</h3>${typeSeg()}</div>
+    <div class="field" style="margin-bottom:0"><h3>DAY ${pad(day.n)} ${esc(day.name)} · 세트 ${sets.length}개</h3>
+      <p class="muted" style="margin:0 0 10px;font-size:.85rem">단어 목록 순서대로 10개씩 묶었습니다. 세트를 누르면 그 10단어로 바로 시험이 시작됩니다.</p>
+      <div class="sets">${sets.map((ws, s) => {
+        const b = setBest[setKey(day.n, s, testCfg.type)], kn = ws.filter(x => known.has(x.key)).length;
+        return `<button class="setcard" data-set="${s}">
+          <span class="setno">세트 ${s + 1}</span>
+          <span class="mono muted setrange">${s * SET_SIZE + 1}–${s * SET_SIZE + ws.length}번</span>
+          <span class="setwords">${ws.slice(0, 3).map(x => esc(oneLine(x.w))).join(', ')}${ws.length > 3 ? ' …' : ''}</span>
+          <span class="setmeta"><span class="mono">외운 단어 ${kn}/${ws.length}</span>${b != null ? `<b class="mono">최고 ${b}점</b>` : '<span class="muted">아직 안 봄</span>'}</span>
+        </button>`;
+      }).join('')}</div>
+    </div>
+  </div>`;
+  $view.querySelectorAll('[data-tmode]').forEach(b => b.onclick = () => { testCfg.mode = b.dataset.tmode; renderTestSetup(); });
+  $view.querySelectorAll('[data-md]').forEach(b => b.onclick = () => { testCfg.mockDay = +b.dataset.md; renderTestSetup(); });
+  $view.querySelectorAll('[data-type]').forEach(b => b.onclick = () => { testCfg.type = b.dataset.type; renderTestSetup(); });
+  $view.querySelectorAll('[data-set]').forEach(b => b.onclick = () => startSet(day.n, +b.dataset.set));
+}
 
 // ---------- quiz ----------
 let quiz = null;
-function startQuiz(words, type, count, dayN) {
+function startQuiz(words, type, count, dayN, set) {
   const qs = shuffle(words).slice(0, count || words.length).map(x => {
     let opts = null;
     if (!TYPED(type)) {
@@ -709,14 +786,14 @@ function startQuiz(words, type, count, dayN) {
     }
     return { x, opts, answer: null, ok: null };
   });
-  quiz = { qs, type, i: 0, dayN };
+  quiz = { qs, type, i: 0, dayN, set: set || null };
   go('quiz');
 }
 function renderQuiz() {
   if (quiz.i >= quiz.qs.length) return renderResult();
   const q = quiz.qs[quiz.i], t = quiz.type, done = q.answer !== null;
   let h = `<div class="q">
-    <div class="qtop"><span>${TYPES[t]} · DAY ${pad(DAYS[q.x.d].n)}</span><span class="mono">${quiz.i + 1} / ${quiz.qs.length}</span></div>
+    <div class="qtop"><span>${TYPES[t]} · DAY ${pad(DAYS[q.x.d].n)}${quiz.set ? ` 세트 ${quiz.set.s + 1}` : ''}</span><span class="mono">${quiz.i + 1} / ${quiz.qs.length}</span></div>
     <div class="progress"><i style="width:${quiz.i / quiz.qs.length * 100}%"></i></div>
     <div class="prompt ${t === 'en2ko' || t === 'write' ? 'en' : ''}">${t === 'en2ko' || t === 'write' ? esc(q.x.w) : meaningHTML(q.x)}</div>`;
   if (t === 'write') {
@@ -786,7 +863,7 @@ function renderQuiz() {
     } else {
       $view.querySelectorAll('.opt').forEach(b => b.onclick = () => { const j = +b.dataset.j; mark(j, q.opts[j].key === q.x.key); });
     }
-    $view.querySelector('#quit').onclick = () => { quiz.qs = quiz.qs.slice(0, quiz.i); renderResult(); };
+    $view.querySelector('#quit').onclick = () => { quiz.qs = quiz.qs.slice(0, quiz.i); quiz.stopped = true; renderResult(); };
   } else {
     $view.querySelector('#say').onclick = () => speak(q.x.w);
     const acc = $view.querySelector('#accept');
@@ -808,13 +885,20 @@ document.addEventListener('keydown', e => {
 });
 function renderResult() {
   const qs = quiz.qs, right = qs.filter(q => q.ok).length, pct = qs.length ? Math.round(right / qs.length * 100) : 0;
+  const st = quiz.set, sk = st && setKey(st.n, st.s, quiz.type);
+  // a mock set counts only when finished, not when stopped early with 그만 보기
+  const finished = qs.length && !quiz.stopped;
   if (quiz.dayN && qs.length && !quiz.saved) { best[quiz.dayN] = Math.max(best[quiz.dayN] || 0, pct); store.set('best', best); quiz.saved = true; }
+  if (st && finished && !quiz.saved) { setBest[sk] = Math.max(setBest[sk] || 0, pct); store.set('setBest', setBest); quiz.saved = true; }
   const misses = qs.filter(q => !q.ok);
+  const scoreNote = st ? ` · DAY ${pad(st.n)} 세트 ${st.s + 1}${setBest[sk] != null ? ` 최고 ${setBest[sk]}점` : ''}` : quiz.dayN ? ` · DAY ${pad(quiz.dayN)} 최고 ${best[quiz.dayN]}점` : '';
   let h = `<div class="panel">
-    <div class="score"><b>${pct}점</b><span class="muted">${qs.length}문항 중 ${right}개 정답${quiz.dayN ? ` · DAY ${pad(quiz.dayN)} 최고 ${best[quiz.dayN]}점` : ''}</span></div>
+    <div class="score"><b>${pct}점</b><span class="muted">${qs.length}문항 중 ${right}개 정답${scoreNote}</span></div>
     <div class="row" style="margin-bottom:16px">
-      ${misses.length ? '<button class="btn primary" id="retry">틀린 단어만 다시</button>' : ''}
-      <button class="btn" id="again">같은 범위 새 시험</button>
+      ${st && st.s + 1 < st.total ? `<button class="btn primary" id="nextset">세트 ${st.s + 2} 시험 →</button>` : ''}
+      ${misses.length ? `<button class="btn${st && st.s + 1 < st.total ? '' : ' primary'}" id="retry">틀린 단어만 다시</button>` : ''}
+      ${st ? '<button class="btn" id="sameset">이 세트 다시</button>' : ''}
+      <button class="btn" id="again">${st ? '세트 목록' : '같은 범위 새 시험'}</button>
       <button class="btn" id="home">Day 목록</button>
     </div>`;
   if (misses.length) {
@@ -824,6 +908,9 @@ function renderResult() {
   $view.innerHTML = h + `</div>`;
   const r = $view.querySelector('#retry');
   if (r) r.onclick = () => startQuiz(misses.map(q => q.x), quiz.type, 0, null);
+  const ns = $view.querySelector('#nextset'), ss = $view.querySelector('#sameset');
+  if (ns) ns.onclick = () => startSet(st.n, st.s + 1);
+  if (ss) ss.onclick = () => startSet(st.n, st.s);
   $view.querySelector('#again').onclick = () => go('test');
   $view.querySelector('#home').onclick = () => go('home');
 }
