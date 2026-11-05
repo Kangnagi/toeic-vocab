@@ -85,7 +85,13 @@ button{font-family:inherit}
 .seg button{border:0;background:none;color:var(--muted);padding:7px 12px;font-size:.85rem;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:700}
 .list{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.item{display:grid;grid-template-columns:2.4em minmax(0,1fr) minmax(0,1.3fr) auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
+.item .i{display:flex;align-items:center;gap:4px}
+.grip{border:0;background:none;color:var(--muted);cursor:grab;font-size:1rem;line-height:1;padding:6px 2px;border-radius:4px;touch-action:none}
+.grip:hover{color:var(--accent);background:var(--accent-soft)}
+.grip:focus-visible{outline:2px solid var(--accent)}
+.item.dragging{position:relative;z-index:4;background:var(--paper);box-shadow:0 10px 28px rgba(0,0,0,.18);border-radius:10px}
+.item.dragging .grip{cursor:grabbing;color:var(--accent)}
+.item{display:grid;grid-template-columns:3.6em minmax(0,1fr) minmax(0,1.3fr) auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
 .item .i{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
 .item .w{font-family:var(--f-word);font-size:1.12rem;font-weight:500;white-space:pre-line;min-width:0;overflow-wrap:anywhere}
@@ -113,7 +119,7 @@ button{font-family:inherit}
 .toast > div{flex:1;min-width:0}
 .ico.pass{cursor:default;border-style:dashed}
 .ico.pass.on{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
-@media (max-width:560px){.item{grid-template-columns:2em minmax(0,1fr) auto}.item .m{grid-column:2 / 3}.item .icons{grid-row:1 / span 2;grid-column:3}}
+@media (max-width:560px){.item{grid-template-columns:3.2em minmax(0,1fr) auto}.item .m{grid-column:2 / 3}.item .icons{grid-row:1 / span 2;grid-column:3}}
 
 /* Flashcard */
 .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px;cursor:pointer;gap:12px;user-select:none}
@@ -308,11 +314,32 @@ function writeStars() {
   });
 }
 function toggleStar(key) { stars.has(key) ? stars.delete(key) : stars.add(key); writeStars(); }
+// custom word order per Day, set by drag and drop: { "<day n>": [word index, …] }, kept like stars
+let orders = store.get('order', {}), orderRef = null, orderWrite = Promise.resolve(), dragging = false;
+function writeOrders() {
+  if (!orderRef) { store.set('order', orders); return; }
+  const map = orders;
+  orderWrite = orderWrite.then(() => orderRef.set({ map, updatedAt: Date.now() })).catch(() => {
+    store.set('order', map); toast('단어 순서를 계정에 저장하지 못해 이 브라우저에 저장했습니다.', 5000);
+  });
+}
+// the Day's word indices in the viewer's order; words added to the Day later go at the end
+function dayOrder(day) {
+  const n = day.words.length, saved = (orders[day.n] || []).filter(i => Number.isInteger(i) && i >= 0 && i < n);
+  const seen = new Set(saved);
+  return saved.length ? [...seen, ...day.words.map((_, i) => i).filter(i => !seen.has(i))] : day.words.map((_, i) => i);
+}
+const orderedWords = day => dayOrder(day).map(i => day.words[i]);
+const hasCustomOrder = day => dayOrder(day).some((i, p) => i !== p);
+function setDayOrder(day, order) {
+  if (order.every((i, p) => i === p)) delete orders[day.n]; else orders[day.n] = order;
+  writeOrders();
+}
 const noteDocId = key => 'note-' + key.replace(':', '-');
 const saveLocalNotes = () => store.set('notes', notes);
 function refreshNotes() {
-  // never re-render under an open editor; the draft would be lost
-  if (editingKey) return;
+  // never re-render under an open editor or a box being dragged
+  if (editingKey || dragging) return;
   if (tab === 'study') renderStudy();
 }
 (async () => {
@@ -337,6 +364,21 @@ function refreshNotes() {
       } else stars = new Set(remote);
       refreshNotes();
     }, () => { starsRef = null; });
+    const oRef = col.doc('order');
+    let firstOrder = true;
+    oRef.onSnapshot(snap => {
+      const remote = snap.exists && snap.data().map && typeof snap.data().map === 'object' ? snap.data().map : {};
+      if (firstOrder) {
+        firstOrder = false; orderRef = oRef;
+        // carry orders set in this browser before the account store was reachable
+        const local = orders, missing = Object.keys(local).filter(k => !(k in remote));
+        orders = { ...remote };
+        missing.forEach(k => { orders[k] = local[k]; });
+        store.set('order', {});
+        if (missing.length) writeOrders();
+      } else orders = { ...remote };
+      refreshNotes();
+    }, () => { orderRef = null; });
     let first = true;
     col.onSnapshot(snap => {
       const next = {};
@@ -453,6 +495,9 @@ function dedupeSenses(parts) {
 // Meanings with a marker in front. LC Days (01–10): one meaning per line, verbs first, then
 // nouns, adjectives, adverbs. Other Days: one line per part of speech, in the word list's order.
 const POS_ORDER = ['v', 'n', 'a', 'ad', 'prep', 'conj', 'phr'];
+const posIdx = (p, x) => POS_ORDER.indexOf(posCode(p, x));
+const posRank = x => Math.min(...posGroups(x).map(([p]) => posIdx(p, x)));
+const posGroupsOrdered = x => posGroups(x).sort((a, b) => posIdx(a[0], x) - posIdx(b[0], x));
 const rowCache = new Map();
 function meaningRows(x) {
   if (rowCache.has(x.key)) return rowCache.get(x.key);
@@ -554,22 +599,25 @@ function listControls(day) {
       <button data-hide="w" aria-pressed="${allW}">${allW ? '영어 모두 보이기' : '영어 모두 가리기'}</button>
       <button data-hide="m" aria-pressed="${allM}">${allM ? '뜻 모두 보이기' : '뜻 모두 가리기'}</button>
     </span>
-    <span class="muted" style="font-size:.8rem">영어나 뜻을 누르면 하나씩 가려지고, 다시 누르면 보입니다</span>
-    <button class="btn" id="onlystar" aria-pressed="${onlyStars}" style="margin-left:auto">${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
+    <span class="muted" style="font-size:.8rem">영어나 뜻을 누르면 하나씩 가려지고, 다시 누르면 보입니다 · ⠿를 끌어 순서를 바꿉니다</span>
+    ${hasCustomOrder(day) ? '<button class="btn" id="resetorder" style="margin-left:auto">원래 순서로</button>' : ''}
+    <button class="btn" id="onlystar" aria-pressed="${onlyStars}"${hasCustomOrder(day) ? '' : ' style="margin-left:auto"'}>${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
   </div>`;
 }
 function listHTML(day) {
   let h = `<div class="list">`;
   if (onlyStars && !day.words.some(x => stars.has(x.key))) h += `<div class="empty" style="border:0">이 Day에는 별표한 단어가 없습니다. 단어 오른쪽의 ☆를 눌러 별표하세요.</div>`;
-  day.words.forEach((x, i) => {
+  // p = position in the viewer's order (shown as the number); i = the word's index in the Day (used by every control)
+  orderedWords(day).forEach((x, p) => {
+    const i = +x.key.split(':')[1];
     const st = stars.has(x.key);
     if (onlyStars && !st) return;
     const k = known.has(x.key), note = notes[x.key] || '', editing = editingKey === x.key;
     const hasEx = !!(x.ex || note), open = hasEx && openEx.has(x.key);
     const label = x.ex && note ? '설명·메모' : x.ex ? '설명' : '메모';
     const hw = hidW.has(x.key), hm = hidM.has(x.key);
-    h += `<div class="item${k ? ' known' : ''}${hasEx ? ' has-ex' : ''}"${hasEx ? ` data-ex="${i}"` : ''}>
-      <span class="i">${pad(i + 1)}</span>
+    h += `<div class="item${k ? ' known' : ''}${hasEx ? ' has-ex' : ''}" data-idx="${i}"${hasEx ? ` data-ex="${i}"` : ''}>
+      <span class="i"><button class="grip" data-drag="${i}" aria-label="${pad(p + 1)}번 ${esc(oneLine(x.w))} 순서 옮기기 (끌거나 ↑↓ 키)" title="끌어서 순서 바꾸기">⠿</button>${pad(p + 1)}</span>
       <span class="w${hw ? ' hide' : ''}" data-cell="w" data-i="${i}" tabindex="0" role="button" aria-pressed="${hw}" title="${hw ? '눌러서 영어 보이기' : '눌러서 영어 가리기'}">${esc(x.w)}${hasEx ? `<button class="caret" data-exbtn="${i}" aria-expanded="${open}" title="${label} ${open ? '접기' : '펼치기'}">${open ? '▾' : '▸'} ${label}</button>` : ''}</span>
       <span class="m${hm ? ' hide' : ''}" data-cell="m" data-i="${i}" tabindex="0" role="button" aria-pressed="${hm}" title="${hm ? '눌러서 뜻 보이기' : '눌러서 뜻 가리기'}">${meaningHTML(x)}</span>
       <span class="icons">
@@ -587,7 +635,108 @@ function listHTML(day) {
   });
   return h + `</div>`;
 }
+// ---------- reorder word boxes by drag and drop ----------
+// Drag the ⠿ grip (mouse or touch): the box follows the pointer once per frame, and the boxes it
+// passes slide out of its way with a transition; the DOM order changes only once, on drop.
+// The page scrolls when the pointer nears the top or bottom. Keyboard: focus the grip and press ↑ / ↓.
+function saveVisibleOrder(day, visible) {
+  // with 별표만 보기 only some boxes are shown: put them back into the full order in their new sequence
+  const shown = new Set(visible);
+  let k = 0;
+  setDayOrder(day, dayOrder(day).map(i => shown.has(i) ? visible[k++] : i));
+}
+function enableReorder(day) {
+  const list = $view.querySelector('.list');
+  if (!list) return;
+  const boxes = () => [...list.querySelectorAll('.item')];
+  list.querySelectorAll('[data-drag]').forEach(grip => {
+    grip.onkeydown = e => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const order = boxes().map(b => +b.dataset.idx), at = order.indexOf(+grip.dataset.drag), to = at + (e.key === 'ArrowUp' ? -1 : 1);
+      if (to < 0 || to >= order.length) return;
+      [order[at], order[to]] = [order[to], order[at]];
+      saveVisibleOrder(day, order);
+      renderStudy();
+      const again = $view.querySelector(`[data-drag="${grip.dataset.drag}"]`);
+      if (again) { again.focus(); again.closest('.item').scrollIntoView({ block: 'nearest' }); }
+    };
+    grip.onpointerdown = e => {
+      if (e.button !== 0 || dragging) return;
+      e.preventDefault();
+      const items = boxes(), item = grip.closest('.item'), from = items.indexOf(item);
+      // measure every box once; nothing in the list is re-measured or moved in the DOM until the drop
+      const tops = items.map(el => el.getBoundingClientRect().top + scrollY);
+      const hs = items.map(el => el.offsetHeight), H = hs[from];
+      const centers = tops.map((t, k) => t + hs[k] / 2);
+      const rootCss = getComputedStyle(document.documentElement);
+      const topLimit = (parseFloat(rootCss.getPropertyValue('--hdr')) || 0) + (parseFloat(rootCss.getPropertyValue('--pin')) || 0);
+      const slow = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1;
+      const startY = e.clientY, startScroll = scrollY;
+      const shift = items.map(() => 0);
+      let lastY = e.clientY, to = from, raf = 0, frameKey = '';
+      dragging = true;
+      item.classList.add('dragging');
+      items.forEach((el, k) => { if (k !== from) el.style.transition = `transform ${0.2 * slow}s cubic-bezier(.2,.8,.2,1)`; });
+      grip.setPointerCapture(e.pointerId);
+      // one frame: scroll near the edges, move the dragged box, slide the neighbours it has passed
+      const frame = () => {
+        const step = lastY < topLimit + 48 ? -12 : lastY > innerHeight - 48 ? 12 : 0;
+        if (step) scrollBy(0, step);
+        const key = lastY + ':' + scrollY;
+        if (key !== frameKey) {
+          frameKey = key;
+          const dy = lastY - startY + (scrollY - startScroll), c = centers[from] + dy;
+          item.style.transform = `translateY(${dy}px)`;
+          let up = 0, down = 0;
+          items.forEach((el, k) => {
+            const s = k < from && centers[k] > c ? H : k > from && centers[k] < c ? -H : 0;
+            if (s > 0) up++; else if (s < 0) down++;
+            if (s !== shift[k]) { shift[k] = s; el.style.transform = s ? `translateY(${s}px)` : ''; }
+          });
+          to = from - up + down;
+        }
+        raf = requestAnimationFrame(frame);
+      };
+      raf = requestAnimationFrame(frame);
+      grip.onpointermove = ev => { lastY = ev.clientY; };
+      const end = () => {
+        cancelAnimationFrame(raf);
+        grip.onpointermove = grip.onpointerup = grip.onpointercancel = null;
+        // glide the box into the gap the others opened, then commit the order once
+        const land = to > from ? hs.slice(from + 1, to + 1).reduce((a, b) => a + b, 0)
+          : -hs.slice(to, from).reduce((a, b) => a + b, 0);
+        item.style.transition = `transform ${0.18 * slow}s cubic-bezier(.2,.8,.2,1)`;
+        item.style.transform = `translateY(${land}px)`;
+        const commit = () => {
+          items.forEach(el => { el.style.transition = 'none'; el.style.transform = ''; });
+          item.classList.remove('dragging');
+          if (to !== from) {
+            const next = items.filter(el => el !== item);
+            next.splice(to, 0, item);
+            next.forEach(el => list.appendChild(el));
+            const hadReset = !!$view.querySelector('#resetorder');
+            saveVisibleOrder(day, next.map(el => +el.dataset.idx));
+            // renumber in place; redraw only when the visible set or the controls must change
+            if (onlyStars || hadReset !== hasCustomOrder(day)) renderStudy();
+            else next.forEach((el, p) => { el.querySelector('.i').lastChild.textContent = pad(p + 1); });
+          }
+          requestAnimationFrame(() => items.forEach(el => { el.style.transition = ''; }));
+          dragging = false;
+        };
+        slow ? setTimeout(commit, 190) : commit();
+      };
+      grip.onpointerup = grip.onpointercancel = end;
+    };
+  });
+  const reset = $view.querySelector('#resetorder');
+  if (reset) reset.onclick = () => {
+    if (reset.dataset.armed) { setDayOrder(day, day.words.map((_, i) => i)); renderStudy(); }
+    else { reset.dataset.armed = 1; reset.textContent = '한 번 더 누르면 되돌립니다'; }
+  };
+}
 function bindList(day) {
+  enableReorder(day);
   $view.querySelectorAll('[data-hide]').forEach(b => b.onclick = () => {
     const set = b.dataset.hide === 'w' ? hidW : hidM;
     const all = day.words.every(x => set.has(x.key));
@@ -657,7 +806,7 @@ function bindList(day) {
   }
 }
 function cardDeck(day) {
-  if (!cardOrder) cardOrder = day.words.map((_, i) => i);
+  if (!cardOrder) cardOrder = dayOrder(day);
   return cardOnlyUnknown ? cardOrder.filter(i => !known.has(day.words[i].key)) : cardOrder;
 }
 function cardHTML(day) {
@@ -710,7 +859,7 @@ let testCfg = { days: [1], type: 'en2ko', count: 20, mode: 'free', mockDay: 1 };
 // best score kept per Day, set and test type
 const SET_SIZE = 10;
 let setBest = store.get('setBest', {});
-const daySets = day => Array.from({ length: Math.ceil(day.words.length / SET_SIZE) }, (_, s) => day.words.slice(s * SET_SIZE, (s + 1) * SET_SIZE));
+const daySets = day => { const ws = orderedWords(day); return Array.from({ length: Math.ceil(ws.length / SET_SIZE) }, (_, s) => ws.slice(s * SET_SIZE, (s + 1) * SET_SIZE)); };
 const setKey = (n, s, t) => `${n}-${s}-${t}`;
 const typeSeg = () => `<div class="seg" role="group" aria-label="문제 유형">${Object.entries(TYPES).map(([k, v]) => `<button data-type="${k}" aria-pressed="${testCfg.type === k}">${v}</button>`).join('')}</div>`;
 function renderTestSetup() {
@@ -776,7 +925,9 @@ function renderMockSetup(modeSeg) {
 // ---------- quiz ----------
 let quiz = null;
 function startQuiz(words, type, count, dayN, set) {
-  const qs = shuffle(words).slice(0, count || words.length).map(x => {
+  // pick the questions at random, then ask verbs first, then nouns, adjectives, adverbs …
+  // (a word's earliest part of speech in that order decides; order within a group stays random)
+  const qs = shuffle(words).slice(0, count || words.length).sort((a, b) => posRank(a) - posRank(b)).map(x => {
     let opts = null;
     if (!TYPED(type)) {
       // distractors from the same Day first (same part of speech), then anywhere
@@ -798,7 +949,7 @@ function renderQuiz() {
     <div class="prompt ${t === 'en2ko' || t === 'write' ? 'en' : ''}">${t === 'en2ko' || t === 'write' ? esc(q.x.w) : meaningHTML(q.x)}</div>`;
   if (t === 'write') {
     // one box per part of speech the word's meanings cover; each box is graded on its own
-    const groups = q.groups || (q.groups = posGroups(q.x));
+    const groups = q.groups || (q.groups = posGroupsOrdered(q.x));
     h += `<form class="posform" id="sf">${groups.length > 1 ? `<p class="muted" style="margin:0 0 4px;font-size:.85rem">이 단어는 품사 ${groups.length}개로 쓰입니다. 품사마다 뜻을 하나 이상 쓰세요.</p>` : ''}
       ${groups.map(([p, parts], j) => {
         const st = done ? (q.boxOk[j] ? 'ok' : 'no') : '';
@@ -954,7 +1105,7 @@ function renderWrong() {
     pull = 0;
   };
   function stretch(dy) {
-    if (reduce.matches || (tab !== 'study' && tab !== 'wrong')) return false;
+    if (reduce.matches || dragging || (tab !== 'study' && tab !== 'wrong')) return false;
     if (pull) { const np = pull + dy; pull = Math.sign(np) === Math.sign(pull) ? np : 0; show(); return true; }
     if ((dy > 0 && atBottom()) || (dy < 0 && atTop())) {
       el = $view.querySelector('.list');
