@@ -822,7 +822,7 @@ function cardHTML(day) {
     </div>
     <div class="card${known.has(x.key) ? ' known' : ''}" id="card" tabindex="0" role="button" aria-label="카드 뒤집기">
       <div class="w">${esc(x.w)}</div>
-      ${cardFlip ? `<div class="m">${meaningHTML(x)}</div>${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 이전 카드, 오른쪽으로 끌면 다음 카드</div>`}
+      ${cardFlip ? `<div class="m">${meaningHTML(x)}</div>${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 다음 카드, 오른쪽으로 끌면 이전 카드</div>`}
     </div>
     <div class="cardnav">
       <button class="btn" id="prev">← 이전</button>
@@ -833,9 +833,9 @@ function cardHTML(day) {
     </div>`;
 }
 // ---------- flashcard swipe ----------
-// Drag the card with the mouse or a finger: left → previous card, right → next card. Past the
-// threshold the card flies off and the new one slides in; on the first card a left drag (and on the
-// last card a right drag) only stretches with growing resistance and springs back.
+// Drag the card with the mouse or a finger, like turning a page: left → next card, right → previous
+// card. Past the threshold the card flies off and the new one slides in; on the first card a right
+// drag (and on the last card a left drag) only stretches with growing resistance and springs back.
 function enableCardSwipe(deck) {
   const card = $view.querySelector('#card');
   const slow = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1;
@@ -854,7 +854,7 @@ function enableCardSwipe(deck) {
       if (Math.abs(ry) > Math.abs(rx)) { active = false; return; }   // a vertical move is a page scroll
       moved = true; card.setPointerCapture(pid); card.classList.add('swiping');
     }
-    const blocked = (rx < 0 && cardIdx === 0) || (rx > 0 && cardIdx === deck.length - 1);
+    const blocked = (rx > 0 && cardIdx === 0) || (rx < 0 && cardIdx === deck.length - 1);
     dx = blocked ? Math.sign(rx) * 90 * (1 - Math.exp(-Math.abs(rx) / 160)) : rx;
     card.style.transform = `translateX(${dx}px) rotate(${dx * 0.025}deg)`;
   });
@@ -863,7 +863,7 @@ function enableCardSwipe(deck) {
     active = false;
     if (!moved) return;
     card.classList.remove('swiping');
-    const w = card.offsetWidth, dir = dx < 0 ? -1 : 1, target = cardIdx + dir;
+    const w = card.offsetWidth, dir = dx < 0 ? -1 : 1, target = cardIdx - dir;
     if (target >= 0 && target < deck.length && Math.abs(dx) > Math.min(110, w * 0.25)) {
       card.style.transition = `transform ${0.22 * slow}s ease-in, opacity ${0.22 * slow}s ease-in`;
       card.style.transform = `translateX(${dir * w * 1.1}px) rotate(${dir * 8}deg)`;
