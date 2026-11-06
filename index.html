@@ -129,6 +129,17 @@ button{font-family:inherit}
 .card .w{font-family:var(--f-word);font-size:clamp(2rem,7vw,3.2rem);line-height:1.1;white-space:pre-line;overflow-wrap:anywhere}
 .card .m{font-size:1.15rem;max-width:40ch}
 .card .hint{font-size:.8rem;color:var(--muted)}
+/* the word sits at the same height on both sides of the card; the body below grows downward */
+.card{justify-content:flex-start}
+.card > .w{margin-top:clamp(24px,7vh,64px)}
+.cardbody{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;min-width:0}
+.mcols{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:14px 0;width:100%}
+.mcol{min-width:0;flex:0 1 auto;max-width:100%;display:grid;gap:6px;text-align:left;padding:2px 26px;border-left:1px solid var(--line)}
+.mcol:first-child{border-left:0}
+.mcol-h{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.mcol-v .mcol-h{color:var(--pt-v)} .mcol-n .mcol-h{color:var(--pt-n)} .mcol-a .mcol-h{color:var(--pt-a)} .mcol-ad .mcol-h{color:var(--pt-ad)}
+.mcol-i{font-size:1.12rem;line-height:1.35;overflow-wrap:anywhere}
+@media (max-width:560px){.mcol{padding:2px 14px}}
 .cardnav{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
 
 /* Test */
@@ -511,6 +522,19 @@ function meaningRows(x) {
   rowCache.set(x.key, rows);
   return rows;
 }
+// flashcard back: one column per part of speech (verbs first), each meaning on its own line
+const POS_LABEL = { v: '동사', n: '명사', a: '형용사', ad: '부사', prep: '전치사', conj: '접속사', phr: '구' };
+function cardMeaningHTML(x) {
+  const cols = new Map();
+  for (const [p, parts] of posGroupsOrdered(x)) {
+    const c = posCode(p, x);
+    cols.set(c, [...(cols.get(c) || []), ...dedupeSenses(parts)]);
+  }
+  return `<div class="mcols">${[...cols].map(([c, parts]) => `<div class="mcol mcol-${c}">
+    <div class="mcol-h">${ptag(c)}${POS_LABEL[c]}</div>
+    ${parts.map(t => `<div class="mcol-i">${esc(t)}</div>`).join('')}
+  </div>`).join('')}</div>`;
+}
 const meaningHTML = (x, inline) =>
   `<span class="mrows${inline ? ' inline' : ''}">${meaningRows(x).map(([c, t]) => `<span class="mrow">${ptag(c)}${esc(t)}</span>`).join(inline ? ' ' : '')}</span>`;
 
@@ -824,7 +848,7 @@ function cardHTML(day) {
     </div>
     <div class="card${known.has(x.key) ? ' known' : ''}" id="card" tabindex="0" role="button" aria-label="카드 뒤집기">
       <div class="w">${esc(x.w)}</div>
-      ${cardFlip ? `<div class="m">${meaningHTML(x)}</div>${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 다음 카드, 오른쪽으로 끌면 이전 카드</div>`}
+      <div class="cardbody">${cardFlip ? `${cardMeaningHTML(x)}${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 다음 카드, 오른쪽으로 끌면 이전 카드</div>`}</div>
     </div>
     <div class="cardnav">
       <button class="btn" id="prev">← 이전</button>
