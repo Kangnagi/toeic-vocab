@@ -32,6 +32,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 .wrap{max-width:980px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);padding-block:8px 16px}
 html{overscroll-behavior-y:none}
+/* a flashcard flying off sideways must not widen the page (clip, unlike hidden, keeps sticky headers working) */
+html,body{overflow-x:clip}
 .list{will-change:transform}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .pin{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,0px));z-index:5;background:var(--bg);padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
