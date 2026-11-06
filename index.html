@@ -122,7 +122,8 @@ button{font-family:inherit}
 @media (max-width:560px){.item{grid-template-columns:3.2em minmax(0,1fr) auto}.item .m{grid-column:2 / 3}.item .icons{grid-row:1 / span 2;grid-column:3}}
 
 /* Flashcard */
-.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px;cursor:pointer;gap:12px;user-select:none}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;min-height:280px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px;cursor:pointer;gap:12px;user-select:none;touch-action:pan-y;will-change:transform}
+.card.swiping{cursor:grabbing}
 .card .w{font-family:var(--f-word);font-size:clamp(2rem,7vw,3.2rem);line-height:1.1;white-space:pre-line;overflow-wrap:anywhere}
 .card .m{font-size:1.15rem;max-width:40ch}
 .card .hint{font-size:.8rem;color:var(--muted)}
@@ -821,7 +822,7 @@ function cardHTML(day) {
     </div>
     <div class="card${known.has(x.key) ? ' known' : ''}" id="card" tabindex="0" role="button" aria-label="카드 뒤집기">
       <div class="w">${esc(x.w)}</div>
-      ${cardFlip ? `<div class="m">${meaningHTML(x)}</div>${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space</div>`}
+      ${cardFlip ? `<div class="m">${meaningHTML(x)}</div>${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 이전 카드, 오른쪽으로 끌면 다음 카드</div>`}
     </div>
     <div class="cardnav">
       <button class="btn" id="prev">← 이전</button>
@@ -831,6 +832,60 @@ function cardHTML(day) {
       <button class="btn" id="next">다음 →</button>
     </div>`;
 }
+// ---------- flashcard swipe ----------
+// Drag the card with the mouse or a finger: left → previous card, right → next card. Past the
+// threshold the card flies off and the new one slides in; on the first card a left drag (and on the
+// last card a right drag) only stretches with growing resistance and springs back.
+function enableCardSwipe(deck) {
+  const card = $view.querySelector('#card');
+  const slow = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1;
+  let startX = 0, startY = 0, dx = 0, active = false, moved = false, pid = null;
+  card.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    active = true; moved = false; dx = 0; pid = e.pointerId;
+    startX = e.clientX; startY = e.clientY;
+    card.style.transition = 'none';
+  });
+  card.addEventListener('pointermove', e => {
+    if (!active || e.pointerId !== pid) return;
+    const rx = e.clientX - startX, ry = e.clientY - startY;
+    if (!moved) {
+      if (Math.abs(rx) < 6) return;
+      if (Math.abs(ry) > Math.abs(rx)) { active = false; return; }   // a vertical move is a page scroll
+      moved = true; card.setPointerCapture(pid); card.classList.add('swiping');
+    }
+    const blocked = (rx < 0 && cardIdx === 0) || (rx > 0 && cardIdx === deck.length - 1);
+    dx = blocked ? Math.sign(rx) * 90 * (1 - Math.exp(-Math.abs(rx) / 160)) : rx;
+    card.style.transform = `translateX(${dx}px) rotate(${dx * 0.025}deg)`;
+  });
+  const release = () => {
+    if (!active) return;
+    active = false;
+    if (!moved) return;
+    card.classList.remove('swiping');
+    const w = card.offsetWidth, dir = dx < 0 ? -1 : 1, target = cardIdx + dir;
+    if (target >= 0 && target < deck.length && Math.abs(dx) > Math.min(110, w * 0.25)) {
+      card.style.transition = `transform ${0.22 * slow}s ease-in, opacity ${0.22 * slow}s ease-in`;
+      card.style.transform = `translateX(${dir * w * 1.1}px) rotate(${dir * 8}deg)`;
+      card.style.opacity = '0';
+      setTimeout(() => {
+        cardIdx = target; cardFlip = false; renderStudy();
+        const next = $view.querySelector('#card');
+        if (next && slow && next.animate) next.animate(
+          [{ transform: `translateX(${-dir * 60}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }],
+          { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      }, 220 * slow);
+    } else {
+      // not far enough, or no card that way: spring back with a small overshoot
+      card.style.transition = `transform ${0.5 * slow}s cubic-bezier(.2,1.6,.4,1)`;
+      card.style.transform = '';
+    }
+  };
+  card.addEventListener('pointerup', release);
+  card.addEventListener('pointercancel', release);
+  // a drag is not a click: keep the card from flipping when the pointer is let go after dragging
+  card.addEventListener('click', e => { if (moved) { e.stopImmediatePropagation(); moved = false; } }, true);
+}
 function bindCard(day) {
   const all = $view.querySelector('#allcards');
   if (all) { all.onclick = () => { cardOnlyUnknown = false; renderStudy(); }; return; }
@@ -838,6 +893,7 @@ function bindCard(day) {
   const flip = () => { cardFlip = !cardFlip; renderStudy(); };
   const move = d => { cardIdx = (cardIdx + d + deck.length) % deck.length; cardFlip = false; renderStudy(); };
   $view.querySelector('#card').onclick = flip;
+  enableCardSwipe(deck);
   $view.querySelector('#prev').onclick = () => move(-1);
   $view.querySelector('#next').onclick = () => move(1);
   $view.querySelector('#say').onclick = () => speak(x.w);
