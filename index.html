@@ -132,7 +132,7 @@ button{font-family:inherit}
 /* the word sits at the same height on both sides of the card; the body below grows downward */
 .card{justify-content:flex-start}
 .card > .w{margin-top:clamp(24px,7vh,64px)}
-.cardbody{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;min-width:0}
+.cardbody{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;min-width:0;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .mcols{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:14px 0;width:100%}
 .mcol{min-width:0;flex:0 1 auto;max-width:100%;display:grid;gap:6px;text-align:left;padding:2px 26px;border-left:1px solid var(--line)}
 .mcol:first-child{border-left:0}
@@ -140,6 +140,10 @@ button{font-family:inherit}
 .mcol-v .mcol-h{color:var(--pt-v)} .mcol-n .mcol-h{color:var(--pt-n)} .mcol-a .mcol-h{color:var(--pt-a)} .mcol-ad .mcol-h{color:var(--pt-ad)}
 .mcol-i{font-size:1.12rem;line-height:1.35;overflow-wrap:anywhere}
 @media (max-width:560px){.mcol{padding:2px 14px}}
+.cardex{margin-top:14px;display:grid;gap:14px;padding:14px 18px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.cardex-h{font-size:.75rem;font-weight:700;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.cardex-part.mine .cardex-h{color:var(--accent)}
+.cardex-t{white-space:pre-line;font-size:.92rem;line-height:1.6;overflow-wrap:anywhere}
 .cardnav{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
 
 /* Test */
@@ -848,7 +852,7 @@ function cardHTML(day) {
     </div>
     <div class="card${known.has(x.key) ? ' known' : ''}" id="card" tabindex="0" role="button" aria-label="카드 뒤집기">
       <div class="w">${esc(x.w)}</div>
-      <div class="cardbody">${cardFlip ? `${cardMeaningHTML(x)}${x.ex ? `<div class="hint" style="white-space:pre-line;text-align:left">${esc(x.ex)}</div>` : ''}${notes[x.key] ? `<div class="hint" style="white-space:pre-line;text-align:left"><b>내 메모</b>\n${esc(notes[x.key])}</div>` : ''}` : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 다음 카드, 오른쪽으로 끌면 이전 카드</div>`}</div>
+      <div class="cardbody">${cardFlip ? cardMeaningHTML(x) : `<div class="hint">눌러서 뜻 보기 · Space<br>왼쪽으로 끌면 다음 카드, 오른쪽으로 끌면 이전 카드</div>`}</div>
     </div>
     <div class="cardnav">
       <button class="btn" id="prev">← 이전</button>
@@ -856,8 +860,43 @@ function cardHTML(day) {
         <button class="btn" id="say">▶ 발음</button>
       </div>
       <button class="btn" id="next">다음 →</button>
-    </div>`;
+    </div>
+    ${cardFlip && (x.ex || notes[x.key]) ? `<section class="cardex" aria-label="설명">
+      ${x.ex ? `<div class="cardex-part"><div class="cardex-h">설명</div><div class="cardex-t">${esc(x.ex)}</div></div>` : ''}
+      ${notes[x.key] ? `<div class="cardex-part mine"><div class="cardex-h">내 메모</div><div class="cardex-t">${esc(notes[x.key])}</div></div>` : ''}
+    </section>` : ''}`;
 }
+// ---------- flashcard size ----------
+// Every card of a Day gets the same height: that of the tallest word + meaning columns in the deck
+// (e.g. the two-line "figure / figure out"), measured once per Day and card width in a hidden copy.
+// Explanations and notes are shown below the card's buttons, so they never affect its size.
+const cardHeights = new Map();
+function sizeCard(day, deck) {
+  const card = $view.querySelector('#card');
+  if (!card) return;
+  const width = card.offsetWidth, key = `${day.n}|${width}|${deck.length}`;
+  if (!cardHeights.has(key)) {
+    const probe = card.cloneNode(false);
+    probe.removeAttribute('id');
+    Object.assign(probe.style, { position: 'absolute', visibility: 'hidden', left: '-9999px', top: '0', width: width + 'px', height: 'auto' });
+    document.body.appendChild(probe);
+    let max = 0;
+    for (const i of deck) {
+      const x = day.words[i];
+      probe.innerHTML = `<div class="w">${esc(x.w)}</div><div class="cardbody">${cardMeaningHTML(x)}</div>`;
+      max = Math.max(max, probe.offsetHeight);
+    }
+    probe.remove();
+    cardHeights.set(key, max + 16);
+  }
+  card.style.height = cardHeights.get(key) + 'px';
+}
+addEventListener('resize', () => {
+  if (tab !== 'study' || studyMode !== 'card') return;
+  const day = DAYS.find(x => x.n === renderStudy.n);
+  if (day) sizeCard(day, cardDeck(day));
+});
+
 // ---------- flashcard swipe ----------
 // Drag the card with the mouse or a finger, like turning a page: left → next card, right → previous
 // card. Past the threshold the card flies off and the new one slides in; on the first card a right
@@ -916,6 +955,7 @@ function bindCard(day) {
   const all = $view.querySelector('#allcards');
   if (all) { all.onclick = () => { cardOnlyUnknown = false; renderStudy(); }; return; }
   const deck = cardDeck(day), x = day.words[deck[cardIdx]];
+  sizeCard(day, deck);
   const flip = () => { cardFlip = !cardFlip; renderStudy(); };
   const move = d => { cardIdx = (cardIdx + d + deck.length) % deck.length; cardFlip = false; renderStudy(); };
   $view.querySelector('#card').onclick = flip;
