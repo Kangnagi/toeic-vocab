@@ -66,6 +66,14 @@ button{font-family:inherit}
 .day{all:unset;box-sizing:border-box;cursor:pointer;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center}
 .day:hover{border-color:var(--accent)}
 .day:focus-visible{outline:2px solid var(--accent)}
+.chal-resume{padding:12px 14px;border:1px solid var(--accent);border-radius:10px;background:var(--accent-soft);margin-bottom:12px;font-size:.9rem}
+.chal-best{margin-top:12px;font-size:.85rem;color:var(--muted)}
+.daystats{display:grid;gap:6px;margin-bottom:18px}
+.daystat{display:grid;grid-template-columns:4.6em minmax(0,1fr) minmax(60px,1.2fr) 4.5em 3em;gap:10px;align-items:center;font-size:.85rem}
+.daystat .ds-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.daystat .ds-n,.daystat .ds-p{text-align:right}
+.daystat.low .ds-p{color:var(--bad);font-weight:700}
+@media (max-width:560px){.daystat{grid-template-columns:4.6em minmax(50px,1fr) 4.5em 3em}.daystat .ds-name{display:none}}
 .sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .setcard{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
 .setcard:hover{border-color:var(--accent)}
@@ -322,24 +330,28 @@ function speak(text) {
 
 // ---------- my notes: per viewer, saved to the account when signed in, otherwise this browser ----------
 let notes = store.get('notes', {}), notesCol = null, editingKey = null;
-// starred words: one document holding every starred key; writes are chained so only one is in flight
-let stars = new Set(store.get('stars', [])), starsRef = null, starWrite = Promise.resolve(), onlyStars = false;
+// starred words: one document holding every starred key; writes are chained so only one is in flight.
+// While any of this page's writes is still on its way, account snapshots describe an older state
+// (the write before, or a periodic refresh) and are ignored: the page's own copy is the newest.
+let stars = new Set(store.get('stars', [])), starsRef = null, starWrite = Promise.resolve(), starPending = 0, onlyStars = false;
 function writeStars() {
   const keys = [...stars];
   if (!starsRef) { store.set('stars', keys); return; }
+  starPending++;
   starWrite = starWrite.then(() => starsRef.set({ keys, updatedAt: Date.now() })).catch(() => {
     store.set('stars', keys); toast('별표를 계정에 저장하지 못해 이 브라우저에 저장했습니다.', 5000);
-  });
+  }).finally(() => { starPending--; });
 }
 function toggleStar(key) { stars.has(key) ? stars.delete(key) : stars.add(key); writeStars(); }
 // custom word order per Day, set by drag and drop: { "<day n>": [word index, …] }, kept like stars
-let orders = store.get('order', {}), orderRef = null, orderWrite = Promise.resolve(), dragging = false;
+let orders = store.get('order', {}), orderRef = null, orderWrite = Promise.resolve(), orderPending = 0, dragging = false;
 function writeOrders() {
   if (!orderRef) { store.set('order', orders); return; }
-  const map = orders;
+  const map = JSON.parse(JSON.stringify(orders));
+  orderPending++;
   orderWrite = orderWrite.then(() => orderRef.set({ map, updatedAt: Date.now() })).catch(() => {
     store.set('order', map); toast('단어 순서를 계정에 저장하지 못해 이 브라우저에 저장했습니다.', 5000);
-  });
+  }).finally(() => { orderPending--; });
 }
 // the Day's word indices in the viewer's order; words added to the Day later go at the end
 function dayOrder(day) {
@@ -353,6 +365,27 @@ function setDayOrder(day, order) {
   if (order.every((i, p) => i === p)) delete orders[day.n]; else orders[day.n] = order;
   writeOrders();
 }
+// small per-viewer records (challenge progress and best runs): kept in the account when it is
+// reachable, in this browser too, and in memory so a paused run survives even with storage blocked.
+// Writes to one record are coalesced: while one is in flight, only the newest value goes next.
+const kept = {}, keptBusy = {}, keptNext = {};
+let keptCol = null;
+const keptId = name => 'kept-' + name.replace(/[^A-Za-z0-9_-]/g, '_');
+function keepGet(name, def) { return name in kept ? kept[name] : store.get(name, def); }
+function keepSet(name, value) {
+  kept[name] = value;
+  store.set(name, value);
+  if (!keptCol) return;
+  if (keptBusy[name]) { keptNext[name] = true; return; }
+  const send = () => {
+    keptBusy[name] = true; keptNext[name] = false;
+    keptCol.doc(keptId(name)).set({ v: JSON.stringify(kept[name]), updatedAt: Date.now() })
+      .catch(() => {})
+      .finally(() => { keptBusy[name] = false; if (keptNext[name]) send(); });
+  };
+  send();
+}
+const KEPT_NAMES = ['challengeBest', ...['en2ko', 'ko2en', 'write', 'spell'].map(t => 'challenge:' + t)];
 const noteDocId = key => 'note-' + key.replace(':', '-');
 const saveLocalNotes = () => store.set('notes', notes);
 function refreshNotes() {
@@ -368,6 +401,16 @@ function refreshNotes() {
     const uid = user && await user.id();
     if (!db || !uid) return;
     const col = db.collection('data/users/' + uid);
+    // challenge records: take the account's copy unless this page has already written one
+    keptCol = col;
+    await Promise.all(KEPT_NAMES.map(async name => {
+      try {
+        const snap = await col.doc(keptId(name)).get();
+        if (snap.exists && !(name in kept)) { kept[name] = JSON.parse(snap.data().v); store.set(name, kept[name]); }
+        else if (!snap.exists && !(name in kept) && store.get(name, null) !== null) keepSet(name, store.get(name, null));
+      } catch (e) {}
+    }));
+    if (tab === 'test' && testCfg.mode === 'challenge') renderTestSetup();
     const sRef = col.doc('stars');
     let firstStars = true;
     sRef.onSnapshot(snap => {
@@ -379,7 +422,13 @@ function refreshNotes() {
         store.set('stars', []);
         stars = merged;
         if (merged.size !== remote.length) writeStars();
-      } else stars = new Set(remote);
+      } else {
+        // a write of ours is still pending: this snapshot is older than what the page shows
+        if (starPending) return;
+        const next = new Set(remote);
+        if (next.size === stars.size && [...next].every(k => stars.has(k))) return;   // nothing new: no redraw
+        stars = next;
+      }
       refreshNotes();
     }, () => { starsRef = null; });
     const oRef = col.doc('order');
@@ -394,7 +443,11 @@ function refreshNotes() {
         missing.forEach(k => { orders[k] = local[k]; });
         store.set('order', {});
         if (missing.length) writeOrders();
-      } else orders = { ...remote };
+      } else {
+        if (orderPending) return;
+        if (JSON.stringify(remote) === JSON.stringify(orders)) return;
+        orders = { ...remote };
+      }
       refreshNotes();
     }, () => { orderRef = null; });
     let first = true;
@@ -808,11 +861,22 @@ function bindList(day) {
   });
   $view.querySelector('#onlystar').onclick = () => { onlyStars = !onlyStars; renderStudy(); };
   $view.querySelectorAll('[data-star]').forEach(b => b.onclick = () => {
-    const i = b.dataset.star;
-    toggleStar(day.words[+i].key);
-    renderStudy();
-    const again = $view.querySelector(`[data-star="${i}"]`);
-    if (again) again.focus({ preventScroll: true });
+    const i = b.dataset.star, key = day.words[+i].key;
+    toggleStar(key);
+    // with 별표만 보기 an unstarred box must leave the list; otherwise change just this button and the count
+    if (onlyStars) {
+      renderStudy();
+      const again = $view.querySelector(`[data-star="${i}"]`);
+      if (again) again.focus({ preventScroll: true });
+      return;
+    }
+    const on = stars.has(key);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on);
+    b.title = on ? '별표 해제' : '별표';
+    b.textContent = on ? '★' : '☆';
+    const count = $view.querySelector('#onlystar .mono');
+    if (count) count.textContent = day.words.filter(x => stars.has(x.key)).length;
   });
   $view.querySelectorAll('[data-note]').forEach(b => b.onclick = () => {
     const key = day.words[+b.dataset.note].key;
@@ -988,8 +1052,10 @@ function renderTestSetup() {
   const modeSeg = `<div class="seg" role="group" aria-label="시험 방식" style="margin-bottom:12px">
     <button data-tmode="free" aria-pressed="${testCfg.mode === 'free'}">자유 시험</button>
     <button data-tmode="mock" aria-pressed="${testCfg.mode === 'mock'}">10단어 모의시험</button>
+    <button data-tmode="challenge" aria-pressed="${testCfg.mode === 'challenge'}">전체 챌린지</button>
   </div>`;
   if (testCfg.mode === 'mock') return renderMockSetup(modeSeg);
+  if (testCfg.mode === 'challenge') return renderChallengeSetup(modeSeg);
   const pool = DAYS.filter(d => testCfg.days.includes(d.n)).reduce((s, d) => s + d.words.length, 0);
   let html = modeSeg + `<div class="panel">
     <div class="field"><h3>범위 (Day)</h3>
@@ -1044,29 +1110,94 @@ function renderMockSetup(modeSeg) {
   $view.querySelectorAll('[data-set]').forEach(b => b.onclick = () => startSet(day.n, +b.dataset.set));
 }
 
+// ---------- whole-book challenge ----------
+// Every word of DAY 01–30 in one test. Progress is saved in this browser after each answer
+// (one saved challenge per test type), so a long run can be paused and resumed.
+const fmtTime = s => { s = Math.round(s); const h = s / 3600 | 0, m = (s % 3600) / 60 | 0, ss = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(ss).padStart(2, '0'); };
+const fmtDate = t => { const d = new Date(t); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+const savedChallenge = type => keepGet('challenge:' + type, null);
+const challengeBests = () => keepGet('challengeBest', {});
+function challengeElapsed() { const c = quiz.challenge; return c.elapsed + (Date.now() - c.since) / 1000; }
+function saveChallenge() {
+  if (!quiz || !quiz.challenge) return;
+  keepSet('challenge:' + quiz.type, {
+    keys: quiz.qs.map(q => q.x.key), oks: quiz.qs.map(q => q.ok),
+    elapsed: challengeElapsed(), startedAt: quiz.challenge.startedAt
+  });
+}
+function startChallenge(type) {
+  keepSet('challenge:' + type, null);
+  startQuiz(ALL, type, 0, null, null, { challenge: { startedAt: Date.now(), elapsed: 0, since: Date.now() } });
+}
+function resumeChallenge(type) {
+  const s = savedChallenge(type), byKey = new Map(ALL.map(x => [x.key, x]));
+  const qs = s.keys.map((k, n) => {
+    const x = byKey.get(k);
+    if (!x) return null;
+    const q = buildQuestion(x, type);
+    if (s.oks[n] !== null && s.oks[n] !== undefined) { q.ok = s.oks[n]; q.answer = ''; }
+    return q;
+  }).filter(Boolean);
+  // words added to the book after the challenge began are asked at the end
+  const asked = new Set(s.keys);
+  ALL.filter(x => !asked.has(x.key)).forEach(x => qs.push(buildQuestion(x, type)));
+  const i = qs.findIndex(q => q.ok === null);
+  quiz = { qs, type, i: i < 0 ? qs.length : i, dayN: null, set: null, challenge: { startedAt: s.startedAt, elapsed: s.elapsed, since: Date.now() } };
+  go('quiz');
+}
+function renderChallengeSetup(modeSeg) {
+  const t = testCfg.type, s = savedChallenge(t), b = challengeBests()[t];
+  const done = s ? s.oks.filter(o => o !== null && o !== undefined).length : 0, right = s ? s.oks.filter(o => o === true).length : 0;
+  $view.innerHTML = modeSeg + `<div class="panel">
+    <div class="field"><h3>전체 챌린지</h3>
+      <p class="muted" style="margin:0;font-size:.9rem">DAY 01~30의 <b class="mono">${ALL.length.toLocaleString()}</b>단어를 한 번에 시험 봅니다. 동사부터 품사 순서로 나오고,
+      중간에 멈춰도 진행 상황이 이 브라우저에 저장되어 이어서 볼 수 있습니다.</p>
+    </div>
+    <div class="field"><h3>문제 유형</h3>${typeSeg()}</div>
+    ${s ? `<div class="chal-resume">
+      <div><b>진행 중</b> <span class="mono">${done.toLocaleString()} / ${s.keys.length.toLocaleString()}</span> · 정답 <span class="mono">${right.toLocaleString()}</span>
+        · 걸린 시간 <span class="mono">${fmtTime(s.elapsed)}</span> · ${fmtDate(s.startedAt)} 시작</div>
+      <div class="bar" style="margin:8px 0 12px"><i style="width:${done / s.keys.length * 100}%;background:var(--accent)"></i></div>
+      <div class="row"><button class="btn primary" id="cresume">이어서 하기</button><button class="btn" id="crestart">처음부터 다시</button></div>
+    </div>` : `<div class="row"><button class="btn primary" id="cstart">챌린지 시작</button></div>`}
+    <div class="chal-best">${b ? `최고 기록 · <b class="mono">${b.pct}점</b> (${b.right.toLocaleString()} / ${b.total.toLocaleString()}) · ${fmtTime(b.secs)} · ${fmtDate(b.date)}` : '이 유형은 아직 완주한 기록이 없습니다.'}</div>
+  </div>`;
+  $view.querySelectorAll('[data-tmode]').forEach(x => x.onclick = () => { testCfg.mode = x.dataset.tmode; renderTestSetup(); });
+  $view.querySelectorAll('[data-type]').forEach(x => x.onclick = () => { testCfg.type = x.dataset.type; renderTestSetup(); });
+  const st = $view.querySelector('#cstart'), rs = $view.querySelector('#cresume'), rr = $view.querySelector('#crestart');
+  if (st) st.onclick = () => startChallenge(t);
+  if (rs) rs.onclick = () => resumeChallenge(t);
+  if (rr) rr.onclick = () => {
+    if (rr.dataset.armed) startChallenge(t);
+    else { rr.dataset.armed = 1; rr.textContent = '한 번 더 누르면 진행 기록을 지우고 시작합니다'; }
+  };
+}
+
 // ---------- quiz ----------
 let quiz = null;
-function startQuiz(words, type, count, dayN, set) {
+function buildQuestion(x, type) {
+  let opts = null;
+  if (!TYPED(type)) {
+    // distractors from the same Day first (same part of speech), then anywhere
+    const sameDay = shuffle(DAYS[x.d].words.filter(y => y.key !== x.key && y.m !== x.m && y.w !== x.w));
+    const extra = shuffle(ALL.filter(y => y.d !== x.d && y.m !== x.m));
+    opts = shuffle([x, ...sameDay.concat(extra).slice(0, 3)]);
+  }
+  return { x, opts, answer: null, ok: null };
+}
+function startQuiz(words, type, count, dayN, set, extra) {
   // pick the questions at random, then ask verbs first, then nouns, adjectives, adverbs …
   // (a word's earliest part of speech in that order decides; order within a group stays random)
-  const qs = shuffle(words).slice(0, count || words.length).sort((a, b) => posRank(a) - posRank(b)).map(x => {
-    let opts = null;
-    if (!TYPED(type)) {
-      // distractors from the same Day first (same part of speech), then anywhere
-      const sameDay = shuffle(DAYS[x.d].words.filter(y => y.key !== x.key && y.m !== x.m && y.w !== x.w));
-      const extra = shuffle(ALL.filter(y => y.d !== x.d && y.m !== x.m));
-      opts = shuffle([x, ...sameDay.concat(extra).slice(0, 3)]);
-    }
-    return { x, opts, answer: null, ok: null };
-  });
-  quiz = { qs, type, i: 0, dayN, set: set || null };
+  const qs = shuffle(words).slice(0, count || words.length).sort((a, b) => posRank(a) - posRank(b)).map(x => buildQuestion(x, type));
+  quiz = { qs, type, i: 0, dayN, set: set || null, ...(extra || {}) };
+  if (quiz.challenge) saveChallenge();
   go('quiz');
 }
 function renderQuiz() {
   if (quiz.i >= quiz.qs.length) return renderResult();
   const q = quiz.qs[quiz.i], t = quiz.type, done = q.answer !== null;
   let h = `<div class="q">
-    <div class="qtop"><span>${TYPES[t]} · DAY ${pad(DAYS[q.x.d].n)}${quiz.set ? ` 세트 ${quiz.set.s + 1}` : ''}</span><span class="mono">${quiz.i + 1} / ${quiz.qs.length}</span></div>
+    <div class="qtop"><span>${quiz.challenge ? '전체 챌린지 · ' : ''}${TYPES[t]} · DAY ${pad(DAYS[q.x.d].n)}${quiz.set ? ` 세트 ${quiz.set.s + 1}` : ''}</span><span class="mono">${quiz.challenge ? `정답 ${quiz.qs.filter(z => z.ok).length.toLocaleString()} · ` : ''}${(quiz.i + 1).toLocaleString()} / ${quiz.qs.length.toLocaleString()}</span></div>
     <div class="progress"><i style="width:${quiz.i / quiz.qs.length * 100}%"></i></div>
     <div class="prompt ${t === 'en2ko' || t === 'write' ? 'en' : ''}">${t === 'en2ko' || t === 'write' ? esc(q.x.w) : meaningHTML(q.x)}</div>`;
   if (t === 'write') {
@@ -1098,7 +1229,7 @@ function renderQuiz() {
       ${!q.ok && t === 'write' && q.answer.some(Boolean) ? `<div style="margin-top:8px" class="row"><span>입력한 뜻이 모두 맞는 뜻이라면</span><button class="btn" id="accept">정답으로 인정</button></div>` : ''}</div>
       <div class="row" style="margin-top:14px;justify-content:space-between"><button class="btn" id="say">▶ 발음</button><button class="btn primary" id="nextq">${quiz.i + 1 < quiz.qs.length ? '다음 문제 →' : '결과 보기'}</button></div>`;
   } else {
-    h += `<div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="quit">그만 보기</button></div>`;
+    h += `<div class="row" style="margin-top:14px;justify-content:flex-end"><button class="btn" id="quit">${quiz.challenge ? '잠시 멈추기 (나중에 이어서)' : '그만 보기'}</button></div>`;
   }
   $view.innerHTML = h + `</div>`;
   const mark = (ans, ok) => {
@@ -1110,7 +1241,7 @@ function renderQuiz() {
       known.delete(q.x.key);
       if (TYPED(t)) { wrong[q.x.key] = (wrong[q.x.key] || 0) + 1; saveWrong(); }
     }
-    saveKnown(); renderQuiz();
+    saveKnown(); saveChallenge(); renderQuiz();
   };
   if (!done) {
     if (t === 'write') {
@@ -1136,7 +1267,11 @@ function renderQuiz() {
     } else {
       $view.querySelectorAll('.opt').forEach(b => b.onclick = () => { const j = +b.dataset.j; mark(j, q.opts[j].key === q.x.key); });
     }
-    $view.querySelector('#quit').onclick = () => { quiz.qs = quiz.qs.slice(0, quiz.i); quiz.stopped = true; renderResult(); };
+    $view.querySelector('#quit').onclick = () => {
+      // a challenge pauses: its progress is already saved, so go back to where it can be resumed
+      if (quiz.challenge) { saveChallenge(); testCfg.mode = 'challenge'; testCfg.type = quiz.type; quiz = null; go('test'); return; }
+      quiz.qs = quiz.qs.slice(0, quiz.i); quiz.stopped = true; renderResult();
+    };
   } else {
     $view.querySelector('#say').onclick = () => speak(q.x.w);
     const acc = $view.querySelector('#accept');
@@ -1144,7 +1279,7 @@ function renderQuiz() {
       // undo the miss recorded a moment ago and count it as correct
       q.ok = true; q.accepted = true; known.add(q.x.key); saveKnown();
       if (wrong[q.x.key] > 1) wrong[q.x.key]--; else delete wrong[q.x.key];
-      saveWrong(); renderQuiz();
+      saveWrong(); saveChallenge(); renderQuiz();
     };
     const nx = $view.querySelector('#nextq'); nx.focus();
     nx.onclick = () => { quiz.i++; renderQuiz(); };
@@ -1163,17 +1298,40 @@ function renderResult() {
   const finished = qs.length && !quiz.stopped;
   if (quiz.dayN && qs.length && !quiz.saved) { best[quiz.dayN] = Math.max(best[quiz.dayN] || 0, pct); store.set('best', best); quiz.saved = true; }
   if (st && finished && !quiz.saved) { setBest[sk] = Math.max(setBest[sk] || 0, pct); store.set('setBest', setBest); quiz.saved = true; }
-  const misses = qs.filter(q => !q.ok);
-  const scoreNote = st ? ` · DAY ${pad(st.n)} 세트 ${st.s + 1}${setBest[sk] != null ? ` 최고 ${setBest[sk]}점` : ''}` : quiz.dayN ? ` · DAY ${pad(quiz.dayN)} 최고 ${best[quiz.dayN]}점` : '';
+  // a finished challenge: keep the best run (higher score, then faster) and clear the saved progress
+  const ch = quiz.challenge, secs = ch ? challengeElapsed() : 0;
+  let newBest = false;
+  const bests = challengeBests();
+  if (ch && finished && !quiz.saved) {
+    const prev = bests[quiz.type];
+    if (!prev || pct > prev.pct || (pct === prev.pct && secs < prev.secs)) {
+      keepSet('challengeBest', { ...bests, [quiz.type]: { pct, right, total: qs.length, secs, date: Date.now() } });
+      newBest = true;
+    }
+    keepSet('challenge:' + quiz.type, null);
+    quiz.saved = true;
+  }
+  const misses = qs.filter(q => !q.ok), bestNow = challengeBests()[quiz.type];
+  const scoreNote = ch ? ` · 걸린 시간 ${fmtTime(secs)}${newBest ? ' · 최고 기록!' : bestNow ? ` · 최고 ${bestNow.pct}점` : ''}`
+    : st ? ` · DAY ${pad(st.n)} 세트 ${st.s + 1}${setBest[sk] != null ? ` 최고 ${setBest[sk]}점` : ''}` : quiz.dayN ? ` · DAY ${pad(quiz.dayN)} 최고 ${best[quiz.dayN]}점` : '';
   let h = `<div class="panel">
-    <div class="score"><b>${pct}점</b><span class="muted">${qs.length}문항 중 ${right}개 정답${scoreNote}</span></div>
+    ${ch ? '<div class="tag" style="margin-bottom:4px">전체 챌린지 완주</div>' : ''}
+    <div class="score"><b>${pct}점</b><span class="muted">${qs.length.toLocaleString()}문항 중 ${right.toLocaleString()}개 정답${scoreNote}</span></div>
     <div class="row" style="margin-bottom:16px">
       ${st && st.s + 1 < st.total ? `<button class="btn primary" id="nextset">세트 ${st.s + 2} 시험 →</button>` : ''}
       ${misses.length ? `<button class="btn${st && st.s + 1 < st.total ? '' : ' primary'}" id="retry">틀린 단어만 다시</button>` : ''}
       ${st ? '<button class="btn" id="sameset">이 세트 다시</button>' : ''}
-      <button class="btn" id="again">${st ? '세트 목록' : '같은 범위 새 시험'}</button>
+      ${ch ? '<button class="btn" id="chagain">챌린지 다시</button>' : ''}
+      <button class="btn" id="again">${st ? '세트 목록' : ch ? '시험 목록' : '같은 범위 새 시험'}</button>
       <button class="btn" id="home">Day 목록</button>
     </div>`;
+  if (ch) {
+    h += `<h3>Day별 정답률</h3><div class="daystats">${DAYS.map((d, k) => {
+      const dq = qs.filter(q => q.x.d === k), ok = dq.filter(q => q.ok).length, p = dq.length ? Math.round(ok / dq.length * 100) : 0;
+      return `<div class="daystat${p < 70 ? ' low' : ''}"><span class="mono">DAY ${pad(d.n)}</span><span class="ds-name">${esc(d.name)}</span>
+        <span class="bar"><i style="width:${p}%"></i></span><span class="mono ds-n">${ok}/${dq.length}</span><span class="mono ds-p">${p}%</span></div>`;
+    }).join('')}</div>`;
+  }
   if (misses.length) {
     h += `<h3>틀린 단어 ${misses.length}개</h3><div style="overflow-x:auto"><table class="res"><tbody>${misses.map(q =>
       `<tr><td class="w">${esc(oneLine(q.x.w))}</td><td>${meaningHTML(q.x)}<div class="tag">DAY ${pad(DAYS[q.x.d].n)}${quiz.type === 'write' && q.answer && q.answer.some(Boolean) ? ` · 입력: ${esc(q.groups.map(([p], j) => `${p} ${q.answer[j] || '—'}${q.boxOk[j] ? ' ✓' : ' ✗'}`).join(' / '))}` : quiz.type === 'spell' && q.answer ? ` · 입력: ${esc(q.answer)}` : ''}</div></td></tr>`).join('')}</tbody></table></div>`;
@@ -1184,7 +1342,9 @@ function renderResult() {
   const ns = $view.querySelector('#nextset'), ss = $view.querySelector('#sameset');
   if (ns) ns.onclick = () => startSet(st.n, st.s + 1);
   if (ss) ss.onclick = () => startSet(st.n, st.s);
-  $view.querySelector('#again').onclick = () => go('test');
+  const ca = $view.querySelector('#chagain');
+  if (ca) ca.onclick = () => startChallenge(quiz.type);
+  $view.querySelector('#again').onclick = () => { if (ch) testCfg.mode = 'challenge'; go('test'); };
   $view.querySelector('#home').onclick = () => go('home');
 }
 
