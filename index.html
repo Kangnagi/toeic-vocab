@@ -578,7 +578,8 @@ function dedupeSenses(parts) {
     !parts.some(t => t !== s && t.length > s.length && senseVariants(t).has(normKo(s))));
 }
 // Meanings with a marker in front. LC Days (01–10): one meaning per line, verbs first, then
-// nouns, adjectives, adverbs. Other Days: one line per part of speech, in the word list's order.
+// nouns, adjectives, adverbs. Other Days: one line per part of speech, in the word list's order,
+// except the verb Days (11–14), where the verb line always comes first.
 const POS_ORDER = ['v', 'n', 'a', 'ad', 'prep', 'conj', 'phr'];
 const posIdx = (p, x) => POS_ORDER.indexOf(posCode(p, x));
 const posRank = x => Math.min(...posGroups(x).map(([p]) => posIdx(p, x)));
@@ -590,6 +591,8 @@ function meaningRows(x) {
   const rows = DAYS[x.d].n <= 10
     ? groups.flatMap(([c, parts]) => parts.map(t => [c, t])).sort((a, b) => POS_ORDER.indexOf(a[0]) - POS_ORDER.indexOf(b[0]))
     : groups.map(([c, parts]) => [c, parts.join(', ')]);
+  const n = DAYS[x.d].n;
+  if (n >= 11 && n <= 14) rows.sort((a, b) => (b[0] === 'v') - (a[0] === 'v'));   // stable: only the verb line moves up
   rowCache.set(x.key, rows);
   return rows;
 }
