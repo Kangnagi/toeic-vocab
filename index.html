@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f3f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12161d" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-title" content="토익 단어장">
 <style>html{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -226,7 +229,48 @@ table.res td.w{font-family:var(--f-word);font-size:1.02rem;width:34%}
 .tag{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
 .empty{padding:28px;text-align:center;color:var(--muted);background:var(--paper);border:1px dashed var(--line);border-radius:12px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
+
+/* ---------- 휴대폰 ---------- */
+/* 터치: 두 번 탭 확대와 탭 지연을 없애고, 누를 때 생기는 회색 사각형을 지운다 */
+button,.day,.setcard,.opt,[data-cell],.card{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.grip{touch-action:none}
+.card{touch-action:pan-y}
+@media (pointer:coarse){
+  /* 손가락으로 누르기 쉬운 크기 (가로·세로 40px 이상) */
+  .btn,.seg button,nav.tabs button{min-height:40px}
+  .ico{width:38px;height:38px;font-size:.9rem}
+  .grip{padding:12px 6px}
+  .pg{min-width:40px;height:40px}
+  .chip{min-height:36px;padding:6px 12px}
+  .caret{padding:4px 10px}
+}
+@media (max-width:560px){
+  /* 화면이 좁으면 위쪽 고정을 풀어 단어가 화면을 넉넉히 쓰게 한다 (고정하면 위쪽이 화면 절반을 차지함) */
+  header.top,.pin{position:static}
+  header.top{padding-block:4px 10px;gap:8px}
+  h1{font-size:1.2rem}
+  nav.tabs{width:100%}
+  nav.tabs button{flex:1;padding:6px 8px}
+  .pin{padding-bottom:8px}
+  .studyhead{gap:8px;margin-bottom:8px}
+  .studyhead h2{font-size:1.05rem}
+  .row{gap:6px}
+  .seg button{padding:6px 10px}
+  /* 단어 박스: 아이콘이 단어 칸을 너무 좁히지 않게 간격을 줄인다 */
+  .item{gap:8px;padding:10px 10px}
+  .item .icons{gap:2px}
+  .item .ipa{display:block;margin-left:0;margin-top:2px}
+  /* 좁은 화면에서는 버튼 글자를 줄인다 (← Day 목록 → ←, 10개씩 → 10 …) */
+  .wide-only{display:none}
+  .studyhead{flex-wrap:nowrap}
+  #onlystar{margin-left:auto}
+  /* iOS는 16px보다 작은 입력칸을 누르면 화면을 확대하므로 입력 글자를 16px 이상으로 */
+  input,textarea,select{font-size:16px!important}
+  .q{padding:16px}
+  .prompt.en{font-size:1.7rem}
+  .panel{padding:14px}
+  .wrap{padding-block:12px 40px}
+}</style>
 
 <div class="wrap">
   <header class="top">
@@ -659,7 +703,9 @@ function renderHome() {
 // ---------- pinned top area ----------
 // The page header and a Day's controls stay put while the word list scrolls. Their heights go into
 // --hdr / --pin so the Day controls stick right under the header and rows scroll into view below both.
-const setH = (name, el) => document.documentElement.style.setProperty(name, (el ? el.offsetHeight : 0) + 'px');
+// 휴대폰처럼 고정(sticky)을 끈 화면에서는 높이를 0으로 둬서, 스크롤 위치 보정이 생기지 않게 한다
+const setH = (name, el) => document.documentElement.style.setProperty(name,
+  (el && getComputedStyle(el).position === 'sticky' ? el.offsetHeight : 0) + 'px');
 const hdrEl = document.querySelector('header.top');
 let pinObs = null;
 try { new ResizeObserver(() => setH('--hdr', hdrEl)).observe(hdrEl); } catch (e) {}
@@ -684,13 +730,13 @@ function renderStudy(n) {
   const day = DAYS.find(x => x.n === renderStudy.n);
   const kn = day.words.filter(x => known.has(x.key)).length;
   let html = `<div class="pin"><div class="studyhead">
-    <div><button class="btn" id="back">← Day 목록</button></div>
+    <div><button class="btn" id="back" aria-label="Day 목록으로">←<span class="wide-only"> Day 목록</span></button></div>
     <div class="row">
       <span class="seg" role="group" aria-label="학습 방식">
         <button data-mode="list" aria-pressed="${studyMode === 'list'}">단어 목록</button>
         <button data-mode="card" aria-pressed="${studyMode === 'card'}">플래시카드</button>
       </span>
-      <button class="btn primary" id="testday">이 Day 시험 보기</button>
+      <button class="btn primary" id="testday"><span class="wide-only">이 Day </span>시험 보기</button>
     </div>
   </div>
   <div class="studyhead"><h2><span class="mono" style="color:var(--accent)">DAY ${pad(day.n)}</span> ${esc(day.name)}</h2><span class="muted"><span class="mono">외운 단어 ${kn}/${day.words.length}</span></span></div>`;
@@ -707,13 +753,13 @@ function listControls(day) {
   const allW = day.words.every(x => hidW.has(x.key)), allM = day.words.every(x => hidM.has(x.key));
   return `<div class="row">
     <span class="seg" role="group" aria-label="한 번에 볼 단어 수">
-      ${LIST_SIZES.map(s => `<button data-size="${s}" aria-pressed="${listSize === s}">${s ? s + '개씩' : '전체'}</button>`).join('')}
+      ${LIST_SIZES.map(s => `<button data-size="${s}" aria-pressed="${listSize === s}" aria-label="${s ? s + '개씩' : '전체'}">${s ? s + '<span class="wide-only">개씩</span>' : '전체'}</button>`).join('')}
     </span>
     <span class="seg" role="group" aria-label="모두 가리기">
-      <button data-hide="w" aria-pressed="${allW}">${allW ? '영어 모두 보이기' : '영어 모두 가리기'}</button>
-      <button data-hide="m" aria-pressed="${allM}">${allM ? '뜻 모두 보이기' : '뜻 모두 가리기'}</button>
+      <button data-hide="w" aria-pressed="${allW}">영어 <span class="wide-only">모두 </span>${allW ? '보이기' : '가리기'}</button>
+      <button data-hide="m" aria-pressed="${allM}">뜻 <span class="wide-only">모두 </span>${allM ? '보이기' : '가리기'}</button>
     </span>    ${hasCustomOrder(day) ? '<button class="btn" id="resetorder" style="margin-left:auto">원래 순서로</button>' : ''}
-    <button class="btn" id="onlystar" aria-pressed="${onlyStars}"${hasCustomOrder(day) ? '' : ' style="margin-left:auto"'}>${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
+    <button class="btn" id="onlystar" aria-pressed="${onlyStars}"${hasCustomOrder(day) ? '' : ' style="margin-left:auto"'} aria-label="${onlyStars ? '별표만 보는 중' : '별표만 보기'}">${onlyStars ? '★<span class="wide-only"> 별표만 보는 중</span>' : '☆<span class="wide-only"> 별표만 보기</span>'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
   </div>`;
 }
 // 지금 쪽이 단어 n개 중 어디부터 어디까지인지 (전체 보기면 처음부터 끝까지)
@@ -889,7 +935,7 @@ function bindList(day) {
       // keep the column buttons' labels in step
       const btn = $view.querySelector(`[data-hide="${el.dataset.cell}"]`), all = day.words.every(x => set.has(x.key));
       btn.setAttribute('aria-pressed', all);
-      btn.textContent = `${el.dataset.cell === 'w' ? '영어' : '뜻'} 모두 ${all ? '보이기' : '가리기'}`;
+      btn.innerHTML = `${el.dataset.cell === 'w' ? '영어' : '뜻'} <span class="wide-only">모두 </span>${all ? '보이기' : '가리기'}`;
     };
     el.onclick = e => { if (!e.target.closest('.caret')) flip(); };
     el.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === el) { e.preventDefault(); flip(); } };
