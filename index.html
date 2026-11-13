@@ -143,6 +143,8 @@ button{font-family:inherit}
 .editor{grid-column:2 / -1;display:grid;gap:8px;cursor:auto}
 .editor textarea{width:100%;font:inherit;font-size:.92rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(560px,calc(100% - 32px));background:var(--paper);color:var(--ink);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;box-shadow:0 8px 28px rgba(0,0,0,.18);display:flex;gap:12px;align-items:flex-start;font-size:.9rem;z-index:20}
+/* display:flex가 hidden 속성을 덮어쓰지 않게, 숨김 상태를 따로 적어 둔다 */
+.toast[hidden]{display:none}
 .toast > div{flex:1;min-width:0}
 .ico.pass{cursor:default;border-style:dashed}
 .ico.pass.on{background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
