@@ -40,7 +40,6 @@ html{scrollbar-gutter:stable}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 .pin{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--hdr,0px));z-index:5;background:var(--bg);padding-bottom:10px;margin-bottom:10px;border-bottom:1px solid var(--line)}
 .item{scroll-margin-top:calc(var(--hdr,0px) + var(--pin,0px) + 8px)}
-@media (max-width:560px){.hint-long{display:none}}
 h1{font-size:1.5rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
 h1 small{display:block;font-size:.8rem;font-weight:500;color:var(--muted);letter-spacing:.02em}
 nav.tabs{display:flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px}
@@ -695,7 +694,7 @@ function renderStudy(n) {
       <button class="btn primary" id="testday">이 Day 시험 보기</button>
     </div>
   </div>
-  <div class="studyhead"><h2><span class="mono" style="color:var(--accent)">DAY ${pad(day.n)}</span> ${esc(day.name)}</h2><span class="muted"><span class="mono">외운 단어 ${kn}/${day.words.length}</span><span class="hint-long"> · 뜻 쓰기·철자 쓰기 시험에서 맞힌 단어는 <span style="color:var(--known);font-weight:700">연두색</span>으로 표시되고, 어떤 시험이든 틀리면 원래 색으로 돌아갑니다</span></span></div>`;
+  <div class="studyhead"><h2><span class="mono" style="color:var(--accent)">DAY ${pad(day.n)}</span> ${esc(day.name)}</h2><span class="muted"><span class="mono">외운 단어 ${kn}/${day.words.length}</span></span></div>`;
   html += (studyMode === 'list' ? listControls(day) : '') + `</div>`;
   html += studyMode === 'list' ? listHTML(day) : cardHTML(day);
   $view.innerHTML = html;
@@ -714,9 +713,7 @@ function listControls(day) {
     <span class="seg" role="group" aria-label="모두 가리기">
       <button data-hide="w" aria-pressed="${allW}">${allW ? '영어 모두 보이기' : '영어 모두 가리기'}</button>
       <button data-hide="m" aria-pressed="${allM}">${allM ? '뜻 모두 보이기' : '뜻 모두 가리기'}</button>
-    </span>
-    <span class="muted" style="font-size:.8rem">영어나 뜻을 누르면 하나씩 가려지고, 다시 누르면 보입니다 · ⠿를 끌어 순서를 바꿉니다</span>
-    ${hasCustomOrder(day) ? '<button class="btn" id="resetorder" style="margin-left:auto">원래 순서로</button>' : ''}
+    </span>    ${hasCustomOrder(day) ? '<button class="btn" id="resetorder" style="margin-left:auto">원래 순서로</button>' : ''}
     <button class="btn" id="onlystar" aria-pressed="${onlyStars}"${hasCustomOrder(day) ? '' : ' style="margin-left:auto"'}>${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
   </div>`;
 }
