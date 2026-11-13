@@ -84,6 +84,7 @@ button{font-family:inherit}
 .pg.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .pg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pager-range{font-size:.8rem;margin-left:4px}
+.pager-top{margin:0 0 10px}
 .sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .setcard{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
 .setcard:hover{border-color:var(--accent)}
@@ -769,7 +770,9 @@ function listHTML(day) {
       </form>` : ''}
     </div>`;
   });
-  return h + `</div>` + pagerHTML(shown.length);
+  // 쪽 넘김(페이지네이션)은 목록 위와 아래에 똑같이 둔다
+  const pager = pagerHTML(shown.length);
+  return pager.replace('class="pager"', 'class="pager pager-top"') + h + `</div>` + pager;
 }
 // ---------- reorder word boxes by drag and drop ----------
 // Drag the ⠿ grip (mouse or touch): the box follows the pointer once per frame, and the boxes it
