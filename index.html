@@ -1414,7 +1414,7 @@ function renderWrong() {
   let h = `<div class="studyhead"><h2>오답노트 <span class="muted mono" style="font-size:.9rem">${items.length}단어</span></h2>
     <div class="row"><button class="btn primary" id="wq">오답 시험 (객관식)</button><button class="btn" id="ww">오답 시험 (뜻 쓰기)</button><button class="btn" id="ws">오답 시험 (철자)</button><button class="btn" id="wclear">비우기</button></div></div>
     <div class="list">${items.map((o, i) => `<div class="item"><span class="i">${o.c}회</span><span class="w">${esc(o.x.w)}</span><span class="m">${meaningHTML(o.x)}<div class="tag">DAY ${pad(DAYS[o.x.d].n)}</div></span>
-      <span class="icons"><button class="ico" data-say="${i}" aria-label="발음 듣기">▶</button><button class="ico" data-rm="${o.x.key}" aria-label="오답노트에서 빼기" title="오답노트에서 빼기">✕</button></span></div>`).join('')}</div>`;
+      <span class="icons"><button class="ico" data-say="${i}" aria-label="발음 듣기">▶</button>${(st => `<button class="ico star${st ? ' on' : ''}" data-wstar="${o.x.key}" aria-pressed="${st}" aria-label="별표" title="${st ? '별표 해제' : '별표'}">${st ? '★' : '☆'}</button>`)(stars.has(o.x.key))}<button class="ico" data-rm="${o.x.key}" aria-label="오답노트에서 빼기" title="오답노트에서 빼기">✕</button></span></div>`).join('')}</div>`;
   $view.innerHTML = h;
   $view.querySelector('#wq').onclick = () => startQuiz(items.map(o => o.x), 'en2ko', 0, null);
   $view.querySelector('#ww').onclick = () => startQuiz(items.map(o => o.x), 'write', 0, null);
@@ -1426,6 +1426,16 @@ function renderWrong() {
   };
   $view.querySelectorAll('[data-say]').forEach(b => b.onclick = () => speak(items[+b.dataset.say].x.w));
   $view.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { delete wrong[b.dataset.rm]; saveWrong(); renderWrong(); });
+  // 오답노트의 별표는 단어 목록과 같은 별표다: 여기서 켜면 Day 목록에서도 ★로 보인다
+  $view.querySelectorAll('[data-wstar]').forEach(b => b.onclick = () => {
+    const key = b.dataset.wstar;
+    toggleStar(key);
+    const on = stars.has(key);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on);
+    b.title = on ? '별표 해제' : '별표';
+    b.textContent = on ? '★' : '☆';
+  });
 }
 
 // ---------- rubber band at the ends of the word list ----------
