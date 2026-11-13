@@ -76,6 +76,14 @@ button{font-family:inherit}
 .daystat .ds-n,.daystat .ds-p{text-align:right}
 .daystat.low .ds-p{color:var(--bad);font-weight:700}
 @media (max-width:560px){.daystat{grid-template-columns:4.6em minmax(50px,1fr) 4.5em 3em}.daystat .ds-name{display:none}}
+/* 단어 목록 쪽 넘김 */
+.pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin:14px 0 4px}
+.pager-nums{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.pg{min-width:2.2em;height:2.2em;padding:0 6px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font:500 .85rem var(--f-mono);cursor:pointer}
+.pg:hover{border-color:var(--accent)}
+.pg.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pg:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pager-range{font-size:.8rem;margin-left:4px}
 .sets{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .setcard{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper);min-width:0}
 .setcard:hover{border-color:var(--accent)}
@@ -668,8 +676,11 @@ const openEx = new Set();
 // just that one; the two buttons above the list hide or show a whole column of the Day.
 const hidW = new Set(), hidM = new Set();
 let studyMode = store.get('mode', 'list'), cardIdx = 0, cardFlip = false, cardOrder = null, cardOnlyUnknown = false;
+// 단어 목록을 한 번에 몇 개씩 볼지 (0 = 전체). 고른 개수는 브라우저에 기억하고, 쪽 번호는 Day를 바꾸면 처음으로 돌아간다.
+let listSize = store.get('listSize', 0), listPage = 0;
+const LIST_SIZES = [10, 25, 50, 0];
 function renderStudy(n) {
-  if (n != null && n !== renderStudy.n) { cardIdx = 0; cardFlip = false; cardOrder = null; }
+  if (n != null && n !== renderStudy.n) { cardIdx = 0; cardFlip = false; cardOrder = null; listPage = 0; }
   if (n != null) renderStudy.n = n;
   const day = DAYS.find(x => x.n === renderStudy.n);
   const kn = day.words.filter(x => known.has(x.key)).length;
@@ -696,6 +707,9 @@ function renderStudy(n) {
 function listControls(day) {
   const allW = day.words.every(x => hidW.has(x.key)), allM = day.words.every(x => hidM.has(x.key));
   return `<div class="row">
+    <span class="seg" role="group" aria-label="한 번에 볼 단어 수">
+      ${LIST_SIZES.map(s => `<button data-size="${s}" aria-pressed="${listSize === s}">${s ? s + '개씩' : '전체'}</button>`).join('')}
+    </span>
     <span class="seg" role="group" aria-label="모두 가리기">
       <button data-hide="w" aria-pressed="${allW}">${allW ? '영어 모두 보이기' : '영어 모두 가리기'}</button>
       <button data-hide="m" aria-pressed="${allM}">${allM ? '뜻 모두 보이기' : '뜻 모두 가리기'}</button>
@@ -705,14 +719,35 @@ function listControls(day) {
     <button class="btn" id="onlystar" aria-pressed="${onlyStars}"${hasCustomOrder(day) ? '' : ' style="margin-left:auto"'}>${onlyStars ? '★ 별표만 보는 중' : '☆ 별표만 보기'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
   </div>`;
 }
+// 지금 쪽이 단어 n개 중 어디부터 어디까지인지 (전체 보기면 처음부터 끝까지)
+function listRange(n) {
+  if (!listSize) return { from: 0, to: n, pages: 1 };
+  const pages = Math.max(1, Math.ceil(n / listSize));
+  listPage = Math.min(Math.max(listPage, 0), pages - 1);
+  return { from: listPage * listSize, to: Math.min(n, (listPage + 1) * listSize), pages };
+}
+// 목록 아래 쪽 넘김: ‹ 이전 · 쪽 번호 · 다음 › 와 지금 보는 범위
+function pagerHTML(n) {
+  if (!listSize || n <= listSize) return '';
+  const { from, to, pages } = listRange(n);
+  return `<nav class="pager" aria-label="단어 목록 쪽 넘김">
+    <button class="btn" data-page="${listPage - 1}" ${listPage === 0 ? 'disabled' : ''}>‹ 이전</button>
+    <span class="pager-nums">${Array.from({ length: pages }, (_, k) =>
+      `<button class="pg${k === listPage ? ' on' : ''}" data-page="${k}" aria-current="${k === listPage ? 'page' : 'false'}" aria-label="${k + 1}쪽">${k + 1}</button>`).join('')}</span>
+    <button class="btn" data-page="${listPage + 1}" ${listPage === pages - 1 ? 'disabled' : ''}>다음 ›</button>
+    <span class="muted mono pager-range">${from + 1}–${to} / ${n}</span>
+  </nav>`;
+}
 function listHTML(day) {
   let h = `<div class="list">`;
   if (onlyStars && !day.words.some(x => stars.has(x.key))) h += `<div class="empty" style="border:0">이 Day에는 별표한 단어가 없습니다. 단어 오른쪽의 ☆를 눌러 별표하세요.</div>`;
   // p = position in the viewer's order (shown as the number); i = the word's index in the Day (used by every control)
-  orderedWords(day).forEach((x, p) => {
+  // 별표만 보기로 거른 뒤, 지금 쪽에 해당하는 단어만 그린다.
+  const shown = orderedWords(day).map((x, p) => ({ x, p })).filter(({ x }) => !onlyStars || stars.has(x.key));
+  const { from, to } = listRange(shown.length);
+  shown.slice(from, to).forEach(({ x, p }) => {
     const i = +x.key.split(':')[1];
     const st = stars.has(x.key);
-    if (onlyStars && !st) return;
     const k = known.has(x.key), note = notes[x.key] || '', editing = editingKey === x.key;
     const hasEx = !!(x.ex || note), open = hasEx && openEx.has(x.key);
     const label = x.ex && note ? '설명·메모' : x.ex ? '설명' : '메모';
@@ -734,7 +769,7 @@ function listHTML(day) {
       </form>` : ''}
     </div>`;
   });
-  return h + `</div>`;
+  return h + `</div>` + pagerHTML(shown.length);
 }
 // ---------- reorder word boxes by drag and drop ----------
 // Drag the ⠿ grip (mouse or touch): the box follows the pointer once per frame, and the boxes it
@@ -819,7 +854,8 @@ function enableReorder(day) {
             const hadReset = !!$view.querySelector('#resetorder');
             saveVisibleOrder(day, next.map(el => +el.dataset.idx));
             // renumber in place; redraw only when the visible set or the controls must change
-            if (onlyStars || hadReset !== hasCustomOrder(day)) renderStudy();
+            // 쪽으로 나눠 볼 때는 번호가 쪽 위치에 따라 달라지므로 다시 그린다
+            if (onlyStars || listSize || hadReset !== hasCustomOrder(day)) renderStudy();
             else next.forEach((el, p) => { el.querySelector('.i').lastChild.textContent = pad(p + 1); });
           }
           requestAnimationFrame(() => items.forEach(el => { el.style.transition = ''; }));
@@ -876,7 +912,15 @@ function bindList(day) {
     if (e.target.closest('button, [data-cell], .editor')) return;
     toggleEx(row.dataset.ex, row);
   });
-  $view.querySelector('#onlystar').onclick = () => { onlyStars = !onlyStars; renderStudy(); };
+  $view.querySelector('#onlystar').onclick = () => { onlyStars = !onlyStars; listPage = 0; renderStudy(); };
+  // 한 번에 볼 개수를 바꾸면 첫 쪽부터, 쪽을 넘기면 목록 맨 위가 보이게
+  $view.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
+    listSize = +b.dataset.size; store.set('listSize', listSize); listPage = 0; renderStudy();
+  });
+  $view.querySelectorAll('[data-page]').forEach(b => b.onclick = () => {
+    listPage = +b.dataset.page; renderStudy();
+    window.scrollTo({ top: 0 });
+  });
   $view.querySelectorAll('[data-star]').forEach(b => b.onclick = () => {
     const i = b.dataset.star, key = day.words[+i].key;
     toggleStar(key);
