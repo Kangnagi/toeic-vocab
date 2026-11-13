@@ -1441,6 +1441,8 @@ function renderWrong() {
   let pull = 0, el = null, timer = 0, touchY = null;
   const atBottom = () => Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 1;
   const atTop = () => scrollY <= 0;
+  // 페이지가 화면에 다 들어와서 스크롤할 것이 없으면 늘어나는 효과도 쓰지 않는다
+  const canScroll = () => document.documentElement.scrollHeight > innerHeight + 1;
   const show = () => { el.style.transition = 'none'; el.style.transform = `translateY(${-resist(pull)}px)`; };
   const release = () => {
     if (!el || !pull) return;
@@ -1449,7 +1451,7 @@ function renderWrong() {
     pull = 0;
   };
   function stretch(dy) {
-    if (reduce.matches || dragging || (tab !== 'study' && tab !== 'wrong')) return false;
+    if (reduce.matches || dragging || (tab !== 'study' && tab !== 'wrong') || (!pull && !canScroll())) return false;
     if (pull) { const np = pull + dy; pull = Math.sign(np) === Math.sign(pull) ? np : 0; show(); return true; }
     if ((dy > 0 && atBottom()) || (dy < 0 && atTop())) {
       el = $view.querySelector('.list');
