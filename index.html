@@ -366,13 +366,17 @@ const pad = n => String(n).padStart(2, '0');
 const oneLine = w => w.replace(/\n/g, ' · ');
 // Speech uses the voices installed on the viewer's device. Pick an American English voice
 // (any English voice as a fallback); with none installed, explain instead of reading in Korean.
-let enVoice = null;
+// 전체 듣기에서 뜻을 읽을 한국어 음성도 함께 고른다.
+let enVoice = null, koVoice = null;
 function pickVoice() {
   try {
     const all = speechSynthesis.getVoices();
     const us = all.filter(v => /^en[-_]US$/i.test(v.lang)), en = all.filter(v => /^en\b/i.test(v.lang));
     const pref = [/Google US English/i, /Jenny/i, /Aria/i, /Samantha/i, /Ava/i, /Zira/i, /David/i, /Guy/i];
     enVoice = pref.map(p => us.find(v => p.test(v.name))).find(Boolean) || us[0] || en[0] || null;
+    const ko = all.filter(v => /^ko\b/i.test(v.lang));
+    const koPref = [/Google/i, /SunHi/i, /Heami/i, /Yuna/i, /InJoon/i];
+    koVoice = koPref.map(p => ko.find(v => p.test(v.name))).find(Boolean) || ko[0] || null;
   } catch (e) {}
 }
 try { pickVoice(); speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) {}
@@ -399,6 +403,21 @@ function speak(text, onend) {
     u.voice = enVoice; u.lang = enVoice.lang;
     if (onend) u.onend = u.onerror = onend;
     u.rate = .9; speechSynthesis.cancel(); speechSynthesis.speak(u);
+    return true;
+  } catch (e) { return false; }
+}
+// 뜻을 한국어로 읽는다 (전체 듣기 전용). 목록에 보이는 품사 순서대로 읽고, 괄호 기호는 빼고 읽는다.
+// ~ 뒤에 조사가 오면 '무엇'으로 읽고 (~을 건너서 → 무엇을 건너서), 나머지 ~ 는 읽지 않는다. 한국어 음성이 없으면 false.
+const meaningSpeech = x => meaningRows(x).map(r => r[1]).join(', ')
+  .replace(/~\s*로/g, '무엇으로').replace(/~\s*(?=(에|을|를|와|과|의|이|가|으로|은|는|까지|부터|보다))/g, '무엇').replace(/~/g, ' ').replace(/[\[\]()]/g, ' ').replace(/\s*[\/·]\s*/g, ', ').replace(/\s+/g, ' ').trim();
+function speakKo(text, onend) {
+  try {
+    if (!koVoice) pickVoice();
+    if (!koVoice || !text) return false;
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = koVoice; u.lang = koVoice.lang;
+    u.onend = u.onerror = onend;
+    u.rate = 1; speechSynthesis.cancel(); speechSynthesis.speak(u);
     return true;
   } catch (e) { return false; }
 }
@@ -783,7 +802,8 @@ const shownWords = day => orderedWords(day).map((x, p) => ({ x, p })).filter(({ 
 // 목록에 보이는 순서대로 영어 단어를 하나씩 읽는다. 읽는 단어 박스를 강조하고 화면 안으로 옮기며,
 // 쪽으로 나눠 볼 때는 그 단어가 있는 쪽으로 넘긴다. token은 멈춘 뒤 늦게 도착한 '다 읽음' 신호를 버리는 데 쓴다.
 const play = { day: 0, keys: [], at: 0, timer: 0, token: 0 };
-const PLAY_GAP = 900;   // 단어 사이 쉬는 시간 (ms)
+const PLAY_GAP = 900;        // 단어 사이 쉬는 시간 (ms)
+const PLAY_MEAN_GAP = 500;   // 영어를 읽고 뜻을 읽기 전 쉬는 시간 (ms)
 function playing() { return play.keys.length > 0; }
 function setPlayBtn() {
   const b = document.getElementById('playall');
@@ -824,15 +844,36 @@ function playStep(tok) {
   const key = play.keys[play.at], day = DAYS.find(d => d.n === play.day);
   const x = day.words[+key.split(':')[1]];
   markPlaying(true);
+  // 영어 → 잠깐 쉼 → 한국어 뜻 → 쉼 → 다음 단어. 한국어 음성이 없으면 영어만 읽는다.
   let done = false;
   const next = () => {
     if (done || tok !== play.token) return;
     done = true; clearTimeout(play.timer); play.at++;
     play.timer = setTimeout(() => playStep(tok), PLAY_GAP);
   };
-  if (!speak(x.w, next)) return stopPlay();
-  // 브라우저가 '다 읽음'을 알려 주지 않는 경우에 대비해, 넉넉히 기다린 뒤 다음 단어로 넘어간다
-  play.timer = setTimeout(next, 5000 + x.w.length * 120);
+  const ko = meaningSpeech(x);
+  let enDone = false;
+  const afterEn = () => {
+    if (enDone || tok !== play.token) return;
+    enDone = true; clearTimeout(play.timer);
+    if (!koVoice) pickVoice();
+    if (!koVoice) { warnNoKo(); return next(); }
+    play.timer = setTimeout(() => {
+      if (tok !== play.token) return;
+      if (!speakKo(ko, next)) return next();
+      play.timer = setTimeout(next, 6000 + ko.length * 150);
+    }, PLAY_MEAN_GAP);
+  };
+  if (!speak(x.w, afterEn)) return stopPlay();
+  // 브라우저가 '다 읽음'을 알려 주지 않는 경우에 대비해, 넉넉히 기다린 뒤 다음으로 넘어간다
+  play.timer = setTimeout(afterEn, 5000 + x.w.length * 120);
+}
+// 한국어 음성이 없을 때는 한 번만 알려 준다
+function warnNoKo() {
+  if (warnNoKo.done) return;
+  warnNoKo.done = true;
+  toast(`<b>이 기기에 한국어 음성이 없어 뜻은 읽지 않고 영어만 읽습니다.</b><br>
+    Windows <b>설정 → 시간 및 언어 → 음성 → 음성 추가</b>에서 <b>한국어</b>를 설치하거나, Chrome·Edge에서 열어 주세요.`, 8000);
 }
 // 지금 쪽이 단어 n개 중 어디부터 어디까지인지 (전체 보기면 처음부터 끝까지)
 function listRange(n) {
