@@ -112,6 +112,9 @@ button{font-family:inherit}
 .grip:hover{color:var(--accent);background:var(--accent-soft)}
 .grip:focus-visible{outline:2px solid var(--accent)}
 .item.dragging{position:relative;z-index:4;background:var(--paper);box-shadow:0 10px 28px rgba(0,0,0,.18);border-radius:10px}
+/* 전체 듣기로 지금 읽고 있는 단어 */
+.item.speaking{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+#playall[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .item.dragging .grip{cursor:grabbing;color:var(--accent)}
 .item{display:grid;grid-template-columns:3.6em minmax(0,1fr) minmax(0,1.3fr) auto;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line)}
 .item:first-child{border-top:0}
@@ -380,19 +383,24 @@ function toast(html, ms) {
   t.querySelector('#toast-x').onclick = () => { t.hidden = true; };
   clearTimeout(toast.timer); if (ms) toast.timer = setTimeout(() => { t.hidden = true; }, ms);
 }
-function speak(text) {
+// onend가 있으면 다 읽은 뒤 부른다 (전체 듣기). 영어 음성이 없으면 false를 돌려준다.
+// 단어 하나만 듣는 ▶는 전체 듣기를 멈추고 읽는다.
+function speak(text, onend) {
   try {
+    if (!onend && playing()) stopPlay();
     if (!enVoice) pickVoice();
     if (!enVoice) {
       toast(`<b>이 기기에 영어 음성이 없어 영어 발음으로 읽을 수 없습니다.</b><br>
         Windows <b>설정 → 시간 및 언어 → 음성 → 음성 추가</b>에서 <b>English (United States)</b>를 설치한 뒤 이 페이지를 다시 열어 주세요.
         Chrome이나 Edge에서 이 링크를 열면 설치 없이 영어 음성으로 들을 수 있습니다.`);
-      return;
+      return false;
     }
     const u = new SpeechSynthesisUtterance(text.replace(/\n/g, ', ').replace(/[\[\]()]/g, ' '));
     u.voice = enVoice; u.lang = enVoice.lang;
+    if (onend) u.onend = u.onerror = onend;
     u.rate = .9; speechSynthesis.cancel(); speechSynthesis.speak(u);
-  } catch (e) {}
+    return true;
+  } catch (e) { return false; }
 }
 
 // ---------- my notes: per viewer, saved to the account when signed in, otherwise this browser ----------
@@ -669,6 +677,7 @@ const meaningHTML = (x, inline) =>
 let tab = 'home';
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => go(b.dataset.tab));
 function go(t, arg) {
+  if (playing()) stopPlay();   // 다른 화면으로 가면 전체 듣기를 멈춘다
   tab = t;
   document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === (t === 'study' ? 'home' : t === 'quiz' ? 'test' : t)));
   window.scrollTo(0, 0);
@@ -750,6 +759,8 @@ function renderStudy(n) {
   $view.querySelector('#testday').onclick = () => { testCfg.days = [day.n]; go('test'); };
   $view.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { studyMode = b.dataset.mode; store.set('mode', studyMode); renderStudy(); });
   if (studyMode === 'list') bindList(day); else bindCard(day);
+  // 다시 그려도 읽고 있는 단어 강조는 이어지게, 플래시카드로 바꾸면 전체 듣기를 멈춘다
+  if (playing()) { if (studyMode === 'list' && play.day === day.n) markPlaying(); else stopPlay(); }
 }
 function listControls(day) {
   const allW = day.words.every(x => hidW.has(x.key)), allM = day.words.every(x => hidM.has(x.key));
@@ -762,7 +773,66 @@ function listControls(day) {
       <button data-hide="m" aria-pressed="${allM}">뜻 <span class="wide-only">모두 </span>${allM ? '보이기' : '가리기'}</button>
     </span>    ${hasCustomOrder(day) ? '<button class="btn" id="resetorder" style="margin-left:auto">원래 순서로</button>' : ''}
     <button class="btn" id="onlystar" aria-pressed="${onlyStars}"${hasCustomOrder(day) ? '' : ' style="margin-left:auto"'} aria-label="${onlyStars ? '별표만 보는 중' : '별표만 보기'}">${onlyStars ? '★<span class="wide-only"> 별표만 보는 중</span>' : '☆<span class="wide-only"> 별표만 보기</span>'} <span class="mono">${day.words.filter(x => stars.has(x.key)).length}</span></button>
+    <button class="btn" id="playall" aria-pressed="false">▶ 전체 듣기</button>
   </div>`;
+}
+// 단어 목록에 보이는 단어들: 내가 바꾼 순서대로, 별표만 보기면 별표한 단어만 (p = 순서 번호)
+const shownWords = day => orderedWords(day).map((x, p) => ({ x, p })).filter(({ x }) => !onlyStars || stars.has(x.key));
+
+// ---------- Day 전체 듣기 ----------
+// 목록에 보이는 순서대로 영어 단어를 하나씩 읽는다. 읽는 단어 박스를 강조하고 화면 안으로 옮기며,
+// 쪽으로 나눠 볼 때는 그 단어가 있는 쪽으로 넘긴다. token은 멈춘 뒤 늦게 도착한 '다 읽음' 신호를 버리는 데 쓴다.
+const play = { day: 0, keys: [], at: 0, timer: 0, token: 0 };
+const PLAY_GAP = 900;   // 단어 사이 쉬는 시간 (ms)
+function playing() { return play.keys.length > 0; }
+function setPlayBtn() {
+  const b = document.getElementById('playall');
+  if (!b) return;
+  b.setAttribute('aria-pressed', playing());
+  b.innerHTML = playing() ? `■ 멈추기 <span class="mono">${play.at + 1}/${play.keys.length}</span>` : '▶ 전체 듣기';
+}
+function stopPlay() {
+  play.token++; clearTimeout(play.timer); play.keys = [];
+  try { speechSynthesis.cancel(); } catch (e) {}
+  document.querySelectorAll('.item.speaking').forEach(el => el.classList.remove('speaking'));
+  setPlayBtn();
+}
+function startPlay(day) {
+  stopPlay();
+  play.day = day.n; play.keys = shownWords(day).map(({ x }) => x.key); play.at = 0;
+  if (playing()) playStep(play.token);
+}
+// 읽고 있는 단어를 강조한다. 지금 쪽에 없으면 그 쪽으로 넘겨 다시 그린다.
+function markPlaying(scroll) {
+  if (play.at >= play.keys.length) return;   // 마지막 단어를 읽고 쉬는 중
+  const key = play.keys[play.at], i = +key.split(':')[1];
+  let el = $view.querySelector(`.item[data-idx="${i}"]`);
+  if (!el && listSize) {
+    const day = DAYS.find(d => d.n === play.day), pos = shownWords(day).findIndex(({ x }) => x.key === key);
+    if (pos >= 0) { listPage = Math.floor(pos / listSize); renderStudy(); el = $view.querySelector(`.item[data-idx="${i}"]`); }
+  }
+  $view.querySelectorAll('.item.speaking').forEach(e => e !== el && e.classList.remove('speaking'));
+  if (el) {
+    el.classList.add('speaking');
+    if (scroll) el.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  setPlayBtn();
+}
+function playStep(tok) {
+  if (tok !== play.token) return;
+  if (play.at >= play.keys.length) return stopPlay();
+  const key = play.keys[play.at], day = DAYS.find(d => d.n === play.day);
+  const x = day.words[+key.split(':')[1]];
+  markPlaying(true);
+  let done = false;
+  const next = () => {
+    if (done || tok !== play.token) return;
+    done = true; clearTimeout(play.timer); play.at++;
+    play.timer = setTimeout(() => playStep(tok), PLAY_GAP);
+  };
+  if (!speak(x.w, next)) return stopPlay();
+  // 브라우저가 '다 읽음'을 알려 주지 않는 경우에 대비해, 넉넉히 기다린 뒤 다음 단어로 넘어간다
+  play.timer = setTimeout(next, 5000 + x.w.length * 120);
 }
 // 지금 쪽이 단어 n개 중 어디부터 어디까지인지 (전체 보기면 처음부터 끝까지)
 function listRange(n) {
@@ -788,7 +858,7 @@ function listHTML(day) {
   if (onlyStars && !day.words.some(x => stars.has(x.key))) h += `<div class="empty" style="border:0">이 Day에는 별표한 단어가 없습니다. 단어 오른쪽의 ☆를 눌러 별표하세요.</div>`;
   // p = position in the viewer's order (shown as the number); i = the word's index in the Day (used by every control)
   // 별표만 보기로 거른 뒤, 지금 쪽에 해당하는 단어만 그린다.
-  const shown = orderedWords(day).map((x, p) => ({ x, p })).filter(({ x }) => !onlyStars || stars.has(x.key));
+  const shown = shownWords(day);
   const { from, to } = listRange(shown.length);
   shown.slice(from, to).forEach(({ x, p }) => {
     const i = +x.key.split(':')[1];
@@ -958,6 +1028,7 @@ function bindList(day) {
     toggleEx(row.dataset.ex, row);
   });
   $view.querySelector('#onlystar').onclick = () => { onlyStars = !onlyStars; listPage = 0; renderStudy(); };
+  $view.querySelector('#playall').onclick = () => playing() ? stopPlay() : startPlay(day);
   // 한 번에 볼 개수를 바꾸면 첫 쪽부터, 쪽을 넘기면 목록 맨 위가 보이게
   $view.querySelectorAll('[data-size]').forEach(b => b.onclick = () => {
     listSize = +b.dataset.size; store.set('listSize', listSize); listPage = 0; renderStudy();
